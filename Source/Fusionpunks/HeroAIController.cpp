@@ -69,6 +69,7 @@ void AHeroAIController::BeginPlay()
 	BlackboardComponent->SetValueAsBool("FoundNearbyEnemyCamp", false);
 	BlackboardComponent->SetValueAsBool("ShouldRecruit", false);
 	BlackboardComponent->SetValueAsBool("GoingForWin", false);
+	BlackboardComponent->SetValueAsBool("AgressiveMode", false);
 	hero = Cast<AHeroBase>(GetPawn());
 	
 }
@@ -87,6 +88,7 @@ void AHeroAIController::ResetAITreeTaskStatus()
 	BlackboardComponent->SetValueAsBool("IsDefendingCamp", false);
 	BlackboardComponent->SetValueAsBool("FoundNearbyEnemyCamp", false);
 	BlackboardComponent->SetValueAsBool("ShouldRecruit", false);
+	BlackboardComponent->SetValueAsBool("AgressiveMode", false);
 	ResetAllCampsRecruitStatus();
 	ResetAllCampsSafetyStatus();
 }
@@ -130,9 +132,9 @@ bool AHeroAIController::SafetyCheck(ACreepCamp* camp)
 	else if (hero->ActorHasTag("Diesel") && camp->IsCyberCapturing() &&
 		(camp->GetNumOfCreepsAtCamp() + enemyHero->GetArmySize()) - hero->GetArmySize() <= 5)
 		return true;
-	else if (hero->ActorHasTag("Cyber") && !camp->IsDieselCapturing() && camp->GetNumOfCreepsAtCamp() - hero->GetArmySize() <= 3)
+	else if (hero->ActorHasTag("Cyber") && !camp->IsDieselCapturing() && camp->GetNumOfCreepsAtCamp() - hero->GetArmySize() <= 4)
 		return true;
-	else if (hero->ActorHasTag("Diesel") && !camp->IsCyberCapturing() && camp->GetNumOfCreepsAtCamp() - hero->GetArmySize() <= 3)
+	else if (hero->ActorHasTag("Diesel") && !camp->IsCyberCapturing() && camp->GetNumOfCreepsAtCamp() - hero->GetArmySize() <= 4)
 		return true;
 	else
 		return false;

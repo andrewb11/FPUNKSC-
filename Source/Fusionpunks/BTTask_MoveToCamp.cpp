@@ -76,7 +76,7 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 	if (heroStats->GetHealthPercent() < healthPercentageAbort)
 	{
-		UE_LOG(LogTemp, Display, TEXT("AI HAS LOW HP WHILE HEADING TO CAMP"));
+		UE_LOG(LogTemp, Error, TEXT("AI HAS LOW HP WHILE Moving to target"));
 		//heroAI->ResetAITreeTaskStatus();
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 
@@ -137,7 +137,7 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 		}
 
 
-		else if (heroAI->CheckCampBeingAttacked() && !heroAI->GetCampBeingAttacked()->AIAbondonedCamp())
+		else if (heroAI->CheckCampBeingAttacked() && !(heroAI->GetCampBeingAttacked()->AIAbondonedCamp()))
 		{
 			UE_LOG(LogTemp, Error, TEXT("Senses Camp Being Attacked"));
 			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
@@ -156,7 +156,7 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 
 
-		if (hero->CheckForNearbyEnemyHero())
+		if (hero->CheckForNearbyEnemyHero() && hero->GetDistanceTo(targetCamp) > 850.0f)
 		{
 			//UE_LOG(LogTemp, Display, TEXT("AI SENSES ENEMY WHILE HEADING TO RECURIT CAMP"));
 			//heroAI->ResetAITreeTaskStatus();
@@ -168,7 +168,7 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 		}
 
 
-		else if (heroAI->CheckCampBeingAttacked() && !heroAI->GetCampBeingAttacked()->AIAbondonedCamp())
+		else if (heroAI->CheckCampBeingAttacked() && !heroAI->GetCampBeingAttacked()->AIAbondonedCamp() && hero->GetDistanceTo(targetCamp) >1000 )
 		{
 			UE_LOG(LogTemp, Error, TEXT("Senses Camp Being Attacked"));
 			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
@@ -187,7 +187,7 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 
 
-		if (hero->CheckForNearbyEnemyHero())
+		if (hero->CheckForNearbyEnemyHero() )
 		{
 			//UE_LOG(LogTemp, Display, TEXT("AI SENSES ENEMY WHILE HEADING TO RECURIT CAMP"));
 			//heroAI->ResetAITreeTaskStatus();

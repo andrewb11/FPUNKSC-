@@ -15,6 +15,19 @@ EBTNodeResult::Type UBTTask_ChooseRecruitCamp::ExecuteTask(UBehaviorTreeComponen
 	AHeroBase* hero = Cast<AHeroBase>(OwnerComp.GetAIOwner()->GetPawn());
 	nextCaptureObjective = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("CampTarget"));
 
+	if (hero->CheckForNearbyEnemyHero())
+	{
+		AHeroBase* enemyHero = hero->GetNearbyEnemyHero();
+
+		if (hero->GetPlayerHealthAsDecimal() <= 0.2f && enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() > 0 &&
+			enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() > 0.35f)
+		{
+			UE_LOG(LogTemp, Error, TEXT("AI Needs To Heal.. cant recruit"));
+			return EBTNodeResult::Failed;
+		}
+	}
+
+
 	if (currSituation == ESituation::SE_CapturingUnsafeCamp || (currSituation == ESituation::SE_EngagingEnemyHero && OwnerComp.GetBlackboardComponent()->GetValueAsBool("ShouldRecruit")))
 	{
 		if (heroAI != nullptr && hero != nullptr)
@@ -25,7 +38,7 @@ EBTNodeResult::Type UBTTask_ChooseRecruitCamp::ExecuteTask(UBehaviorTreeComponen
 			{
 				for (int32 i = 0; i < ownedCreepCamps.Num(); i++)
 				{
-					if (!ownedCreepCamps[i]->HasBeenRecruitedFrom() && ownedCreepCamps[i]->GetNumOfCreepsAtCamp() - allowedNumCreepsLeftAtCamp > 0)
+					if (/*!ownedCreepCamps[i]->HasBeenRecruitedFrom() && */ ownedCreepCamps[i]->GetNumOfCreepsAtCamp() - allowedNumCreepsLeftAtCamp > 0)
 					{
 						OwnerComp.GetBlackboardComponent()->SetValueAsInt("NumCreepsToRecruit",
 							ownedCreepCamps[i]->GetNumOfCreepsAtCamp() - allowedNumCreepsLeftAtCamp);
@@ -77,8 +90,8 @@ EBTNodeResult::Type UBTTask_ChooseRecruitCamp::ExecuteTask(UBehaviorTreeComponen
 		{
 			for (int32 i = 0; i < ownedCreepCamps.Num(); i++)
 			{
-				if (!OwnerComp.GetBlackboardComponent()->GetValueAsBool("GoingForWin") && !ownedCreepCamps[i]->HasBeenRecruitedFrom() && ownedCreepCamps[i]->GetNumOfCreepsAtCamp() - allowedNumCreepsLeftAtCamp > 0 &&
-					hero->GetDistanceTo(ownedCreepCamps[i]) <= hero->GetDistanceTo(nextCaptureObjective))
+				if (!OwnerComp.GetBlackboardComponent()->GetValueAsBool("GoingForWin") && /*!ownedCreepCamps[i]->HasBeenRecruitedFrom() && */ ownedCreepCamps[i]->GetNumOfCreepsAtCamp() - allowedNumCreepsLeftAtCamp > 0)
+					//hero->GetDistanceTo(ownedCreepCamps[i]) <= hero->GetDistanceTo(nextCaptureObjective))
 				{
 					OwnerComp.GetBlackboardComponent()->SetValueAsInt("NumCreepsToRecruit",
 						ownedCreepCamps[i]->GetNumOfCreepsAtCamp() - allowedNumCreepsLeftAtCamp);

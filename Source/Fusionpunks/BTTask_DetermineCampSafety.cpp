@@ -80,7 +80,8 @@ EBTNodeResult::Type UBTTask_DetermineCampSafety::ExecuteTask(UBehaviorTreeCompon
 
 
 				else if (hero->ActorHasTag("Cyber") && targetCamp->IsDieselCapturing() &&
-					(targetCamp->GetNumOfCreepsAtCamp() + enemyHero->GetArmySize()) - heroStats->GetArmySize() >= 5)
+					(targetCamp->GetNumOfCreepsAtCamp() + enemyHero->GetArmySize()) - heroStats->GetArmySize() >= 5 && !OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp") &&
+					!OwnerComp.GetBlackboardComponent()->GetValueAsBool("FoundNearbyEnemyCamp"))
 				{
 					UE_LOG(LogTemp, Error, TEXT("Camp Flagged as Unsafe...Enemy Too Strong!"));
 					targetCamp->SetCampSafety(false);
@@ -92,7 +93,8 @@ EBTNodeResult::Type UBTTask_DetermineCampSafety::ExecuteTask(UBehaviorTreeCompon
 				}
 
 				else if (hero->ActorHasTag("Diesel") && targetCamp->IsCyberCapturing() &&
-					(targetCamp->GetNumOfCreepsAtCamp() + enemyHero->GetArmySize()) - heroStats->GetArmySize() >= 5)
+					(targetCamp->GetNumOfCreepsAtCamp() + enemyHero->GetArmySize()) - heroStats->GetArmySize() >= 5 && !OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp") &&
+					!OwnerComp.GetBlackboardComponent()->GetValueAsBool("FoundNearbyEnemyCamp"))
 				{
 					UE_LOG(LogTemp, Error, TEXT("Camp Flagged as Unsafe...Enemy Too Strong!"));
 					targetCamp->SetCampSafety(false);

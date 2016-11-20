@@ -35,12 +35,22 @@ EBTNodeResult::Type UBTTask_DecideHowToApproachHero::ExecuteTask(UBehaviorTreeCo
 			
 			}
 
-			else if ((hero->IsCapturing() || hero->GetDistanceTo(campTarget) <= 1000) && campTarget->GetCampType() != teamCampType || OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp"))
+			else if ((hero->IsCapturing() || hero->GetDistanceTo(campTarget) <= 850.0f) && campTarget->GetCampType() != teamCampType || OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp"))
 			{	
-				//OwnerComp.GetBlackboardComponent()->SetValueAsObject("HeroAttackSituationTarget", campTarget);
+				
+				if(OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp"))
+					campTarget = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("DefendCampTarget"));
+
 				approachStatus = EApproachStatus::AS_DefendingCamp;
 				UE_LOG(LogTemp, Error, TEXT("Defensive State"));
 				
+			}
+
+			else if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("AgressiveMode"))
+			{
+				
+				approachStatus = EApproachStatus::AS_AgressiveChase;
+				UE_LOG(LogTemp, Error, TEXT("Agressive State activated because AI in agressive mode"));
 			}
 			else if ( (attackTarget->GetArmySize() - hero->GetArmySize() <= creepDifferenceAllowed
 				&& attackTarget->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() <= healthPercentDifferenceAllowed
@@ -88,7 +98,7 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 
 	if (approachStatus == EApproachStatus::AS_DefendingCamp)
 	{
-		if (attackTarget->IsCapturing() || attackTarget->GetDistanceTo(campTarget) <= 1000 || attackTarget->GetPlayerHealthAsDecimal() <= 0.2f)
+		if (attackTarget->IsCapturing() || attackTarget->GetDistanceTo(campTarget) <= 850.0f || attackTarget->GetPlayerHealthAsDecimal() <= 0.2f)
 		{
 			if ((hero->IsHeroAttacking() || !hero->IsCreepAttacking()))
 			{

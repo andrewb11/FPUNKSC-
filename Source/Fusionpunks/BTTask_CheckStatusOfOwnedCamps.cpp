@@ -36,7 +36,8 @@ EBTNodeResult::Type UBTTask_CheckStatusOfOwnedCamps::ExecuteTask(UBehaviorTreeCo
 				else
 					enemyHero = campBeingAttacked->GetCyberHero();
 
-				if (campBeingAttacked->GetNumOfCreepsAtCamp() >= numCreepsAlwaysDefend || heroAI->GetNumOwnedCamps() == 1)
+				if ((campBeingAttacked->GetNumOfCreepsAtCamp() >= numCreepsAlwaysDefend && enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() <= healthPercentDifferenceAllowed &&
+					hero->GetPlayerHealthAsDecimal() > healthPercentRequired )|| heroAI->GetNumOwnedCamps() == 1)
 				{
 					//Too Many Creeps At Camp...Defend
 					UE_LOG(LogTemp, Error, TEXT("Too Many Creeps At Camp...Defend"));
@@ -59,10 +60,10 @@ EBTNodeResult::Type UBTTask_CheckStatusOfOwnedCamps::ExecuteTask(UBehaviorTreeCo
 					return  EBTNodeResult::Failed;
 				}
 
-				if (((hero->GetDistanceTo(campBeingAttacked) + 500.0f) <= hero->GetDistanceTo(otherCampObjective))
+				else if (hero->GetDistanceTo(campBeingAttacked) <= hero->GetDistanceTo(otherCampObjective)
 					&& enemyHero->GetArmySize() - hero->GetArmySize() <= creepDifferenceAllowed
 					&& enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() <= healthPercentDifferenceAllowed
-					&& enemyHero->GetLevel() - hero->GetLevel() <= levelDifferenceAllowed)
+					&& enemyHero->GetLevel() - hero->GetLevel() <= levelDifferenceAllowed && hero->GetPlayerHealthAsDecimal() > healthPercentRequired)
 				{
 
 						//AI THINKS IT CAN DEFEND AGAINST ENEMY HERO

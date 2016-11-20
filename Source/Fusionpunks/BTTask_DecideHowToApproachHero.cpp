@@ -20,6 +20,7 @@ EBTNodeResult::Type UBTTask_DecideHowToApproachHero::ExecuteTask(UBehaviorTreeCo
 		attackTarget = Cast<AHeroBase>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("AttackTarget"));
 		campTarget = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("CampTarget"));
 		healingWell = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("HealingWell"));
+		//OwnerComp.GetBlackboardComponent()->SetValueAsBool("IgnoreHeroMode", false);
 		enemyCreep = nullptr;
 		if (attackTarget != nullptr && campTarget!= nullptr)
 		{
@@ -63,8 +64,10 @@ EBTNodeResult::Type UBTTask_DecideHowToApproachHero::ExecuteTask(UBehaviorTreeCo
 
 			else
 			{
-				approachStatus = EApproachStatus::AS_EscapingToRecruitCreeps;
-				UE_LOG(LogTemp, Error, TEXT("Escaping to recruit creeps"));
+				approachStatus = EApproachStatus::AS_AgressiveChase;
+				//OwnerComp.GetBlackboardComponent()->SetValueAsBool("IgnoreHeroMode", true);
+				//UE_LOG(LogTemp, Error, TEXT("Ignore Hero Mode"));
+				//return EBTNodeResult::Failed;
 				
 			}
 			bNotifyTick = true;
@@ -244,12 +247,5 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 		}
 	}
 
-	else if (approachStatus == EApproachStatus::AS_EscapingToRecruitCreeps)
-	{
-		//heroAI->GetSortedOwnedCampList();
-		OwnerComp.GetBlackboardComponent()->SetValueAsBool("ShouldRecruit", true);
-		heroAI->ResetAllCampsRecruitStatus();
-		//UE_LOG(LogTemp, Error, TEXT("Escaping to recruit creeps TICK"));
-		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-	}
+	
 }

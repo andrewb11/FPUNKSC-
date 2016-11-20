@@ -304,7 +304,7 @@ ACreep* AHeroBase::GetClosestEnemyCreep()
 		GetActorLocation(),
 		FQuat(),
 		obejctQP,
-		FCollisionShape::MakeSphere(1300.f),
+		FCollisionShape::MakeSphere(1000.f),
 		QueryParameters);
 	TArray<ACreep*> enemyCreeps;
 	ACreep* closestCreep = nullptr;
@@ -357,7 +357,7 @@ bool AHeroBase::CheckForNearbyCreepsInArmy()
 		GetActorLocation(),
 		FQuat(),
 		obejctQP,
-		FCollisionShape::MakeSphere(1300.f),
+		FCollisionShape::MakeSphere(1000.f),
 		QueryParameters);
 	nearbyCreepsInArmy.Empty();
 	if (Results.Num() > 0)
@@ -399,7 +399,7 @@ bool AHeroBase::CheckForNearbyEnemyCreeps()
 		GetActorLocation(),
 		FQuat(),
 		obejctQP,
-		FCollisionShape::MakeSphere(1300.f),
+		FCollisionShape::MakeSphere(1000.f),
 		QueryParameters);
 
 	nearbyEnemyCreeps.Empty();
@@ -437,7 +437,7 @@ bool AHeroBase::CheckForNearbyEnemyHero()
 		GetActorLocation(),
 		FQuat(),
 		obejctQP,
-		FCollisionShape::MakeSphere(1300),
+		FCollisionShape::MakeSphere(1000),
 		QueryParameters);
 		
 	nearbyEnemyHero = nullptr;
@@ -465,7 +465,7 @@ bool AHeroBase::CheckForNearbyEnemyTowers()
 		GetActorLocation(),
 		FQuat(),
 		objectQP,
-		FCollisionShape::MakeSphere(1300.f),
+		FCollisionShape::MakeSphere(1000.f),
 		QueryParameters);
 
 	nearbyEnemyTower = nullptr;
@@ -508,7 +508,7 @@ bool AHeroBase::CheckForNearbyInteractions()
 		GetActorLocation(),
 		FQuat(),
 		obejctQP,
-		FCollisionShape::MakeSphere(1300.f),
+		FCollisionShape::MakeSphere(1000.f),
 		QueryParameters);
 
 	nearbyEnemyCreeps.Empty();
@@ -531,14 +531,14 @@ bool AHeroBase::CheckForNearbyInteractions()
 
 				ACreepCamp* currCamp = Cast<ACreepCamp>(Results[i].GetActor());
 				if (team.Compare("Diesel") == 0 && currCamp->GetCampType() == ECampType::CT_Diesel && /*!currCamp->HasBeenRecruitedFrom() && */
-					currCamp->GetNumOfCreepsAtCamp() - 2 > 0 && GetArmySize() < maxArmySize)
+					currCamp->GetNumOfCreepsAtCamp() - 1 > 0 && GetArmySize() < maxArmySize)
 				{
 					nearbyOwnedCreepCamps.Add(currCamp);
 					UE_LOG(LogTemp, Display, TEXT("FOUND NEARBY OWNED CAMP"));
 				}
 
 				else if (team.Compare("Cyber") == 0 && currCamp->GetCampType() == ECampType::CT_Cyber &&  /*!currCamp->HasBeenRecruitedFrom() && */
-					currCamp->GetNumOfCreepsAtCamp() - 2 > 0 && GetArmySize() < maxArmySize)
+					currCamp->GetNumOfCreepsAtCamp() - 1 > 0 && GetArmySize() < maxArmySize)
 				{
 					nearbyOwnedCreepCamps.Add(currCamp);
 					UE_LOG(LogTemp, Display, TEXT("FOUND NEARBY OWNED CAMP"));
@@ -605,7 +605,7 @@ bool AHeroBase::CheckForNearbyOnwedCreepCamps()
 		GetActorLocation(),
 		FQuat(),
 		obejctQP,
-		FCollisionShape::MakeSphere(1300.f),
+		FCollisionShape::MakeSphere(1000.f),
 		QueryParameters);
 
 	nearbyOwnedCreepCamps.Empty();	
@@ -615,12 +615,12 @@ bool AHeroBase::CheckForNearbyOnwedCreepCamps()
 		{
 	
 			ACreepCamp* currCamp = Cast<ACreepCamp>(Results[i].GetActor());
-			if (team.Compare("Diesel") == 0 && currCamp->GetCampType() == ECampType::CT_Diesel && currCamp->GetNumOfCreepsAtCamp() - 2 > 0)
+			if (team.Compare("Diesel") == 0 && currCamp->GetCampType() == ECampType::CT_Diesel && currCamp->GetNumOfCreepsAtCamp() - 1> 0)
 			{
 				nearbyOwnedCreepCamps.Add(currCamp);
 			}
 
-			else if (team.Compare("Cyber") == 0 && currCamp->GetCampType() == ECampType::CT_Cyber && currCamp->GetNumOfCreepsAtCamp() - 2 > 0)
+			else if (team.Compare("Cyber") == 0 && currCamp->GetCampType() == ECampType::CT_Cyber && currCamp->GetNumOfCreepsAtCamp() - 1 > 0)
 			{
 				nearbyOwnedCreepCamps.Add(currCamp);
 			}

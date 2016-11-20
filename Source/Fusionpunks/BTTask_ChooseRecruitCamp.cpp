@@ -15,18 +15,7 @@ EBTNodeResult::Type UBTTask_ChooseRecruitCamp::ExecuteTask(UBehaviorTreeComponen
 	AHeroBase* hero = Cast<AHeroBase>(OwnerComp.GetAIOwner()->GetPawn());
 	nextCaptureObjective = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("CampTarget"));
 
-	if (hero->CheckForNearbyEnemyHero())
-	{
-		AHeroBase* enemyHero = hero->GetNearbyEnemyHero();
-
-		if (hero->GetPlayerHealthAsDecimal() <= 0.2f && enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() > 0 &&
-			enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() > 0.35f)
-		{
-			UE_LOG(LogTemp, Error, TEXT("AI Needs To Heal.. cant recruit"));
-			return EBTNodeResult::Failed;
-		}
-	}
-
+	
 
 	if (currSituation == ESituation::SE_CapturingUnsafeCamp || (currSituation == ESituation::SE_EngagingEnemyHero && OwnerComp.GetBlackboardComponent()->GetValueAsBool("ShouldRecruit")))
 	{
@@ -84,7 +73,16 @@ EBTNodeResult::Type UBTTask_ChooseRecruitCamp::ExecuteTask(UBehaviorTreeComponen
 
 	else if (currSituation == ESituation::SE_AfterCapturing)
 	{
+		
+		if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("NeutralCampsExist"))
+		{
+			return EBTNodeResult::Failed;
+		}
+		
+		
 		TArray<ACreepCamp*> ownedCreepCamps = heroAI->GetSortedOwnedCampList();
+
+	
 
 		if (ownedCreepCamps.Num() > 0)
 		{

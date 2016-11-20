@@ -22,8 +22,8 @@ EBTNodeResult::Type UBTTask_CheckHealth::ExecuteTask(UBehaviorTreeComponent& Own
 		{
 			AHeroBase* enemyHero = hero->GetNearbyEnemyHero();
 
-			if (hero->GetPlayerHealthAsDecimal() <= healthPercentage && enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() > 0 &&
-				enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() > 0.35f)
+			if ((hero->GetPlayerHealthAsDecimal() <= healthPercentage && enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() > 0 &&
+				enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() > healthPercentage) || enemyHero->GetArmySize() - hero->GetArmySize() > creepDifferenceAllowed)
 			{
 				UE_LOG(LogTemp, Error, TEXT("AI Needs To Heal"));
 				return EBTNodeResult::Failed;

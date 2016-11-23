@@ -79,6 +79,14 @@ EBTNodeResult::Type UBTTask_ChooseCreepCamp::ExecuteTask(UBehaviorTreeComponent&
 					return EBTNodeResult::Succeeded;
 				}
 
+				else if (heroAI->GetNumOwnedCamps() == 0)
+				{
+					OwnerComp.GetBlackboardComponent()->SetValueAsObject("CampTarget", heroAI->GetHomeCamp());
+					OwnerComp.GetBlackboardComponent()->SetValueAsBool("CapturedCamp", false);
+					//	UE_LOG(LogTemp, Error, TEXT("Found A Safe Camp!"));
+					return EBTNodeResult::Succeeded;
+				}
+
 				// TARGET CAMP IS NULL 
 				//UE_LOG(LogTemp, Error, TEXT("NO SAFE CAMPS!"));
 				return EBTNodeResult::Failed;

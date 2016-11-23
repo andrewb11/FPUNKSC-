@@ -29,7 +29,7 @@ protected:
 		float healthPercentageAbort = 0.2f;
 	UFUNCTION()
 		void AttackOnTimer();
-
+	class AAbilityBase *ability0, *ability1, *ability2, *ability3;
 
 	
 

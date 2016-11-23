@@ -115,7 +115,7 @@ public:
 	bool SafetyCheck(class ACreepCamp*);
 	FORCEINLINE class ACreepCamp* GetCampBeingAttacked() const  { return campBeingAttacked; }
 	FORCEINLINE int32 GetNumOwnedCamps() { return GetSortedOwnedCampList().Num(); }
-	
+	FORCEINLINE class ACreepCamp* GetHomeCamp() const { return homeCamp; }
 protected:
 
 	
@@ -124,7 +124,7 @@ protected:
 
 	class ABase* enemyBase;
 
-	class ACreepCamp* campBeingAttacked;
+	class ACreepCamp *campBeingAttacked, *homeCamp;
 
 	UPROPERTY(EditDefaultsOnly)
 		UBehaviorTree* BehaviorTreeAsset;

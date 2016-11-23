@@ -2,6 +2,7 @@
 
 #include "Fusionpunks.h"
 #include "HeroBase.h"
+#include "HeroAIController.h"
 #include "RespawnOverTime.h"
 
 
@@ -12,11 +13,14 @@ void ARespawnOverTime::StartTimer(float time, AActor* target)
 
 	GetWorld()->GetTimerManager().SetTimer(applyEffectHandle, this, &ARespawnOverTime::ApplyEffect, time, false);
 	effectTarget = target;
+	hero = Cast<AHeroBase>(GetOwner());
+	if (hero->ActorHasTag("AI"))
+		heroAI = Cast<AHeroAIController>(hero->GetController());
 }
 
 void ARespawnOverTime::ApplyEffect()
 {
-	AHeroBase* hero = Cast<AHeroBase>(effectTarget);
+	
 	hero->SetActorLocation(hero->startingLocation);
 	hero->ResetHealth();
 	hero->ShowCompassDecal();
@@ -24,4 +28,9 @@ void ARespawnOverTime::ApplyEffect()
 	hero->SetActorEnableCollision(true);
 	hero->GetController()->EnableInput(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	hero->bIsRespawning = false;
+	if (hero->ActorHasTag("AI"))
+	{
+		heroAI->ResetAITreeTaskStatus();
+		heroAI->RestartHeroAITree();
+	}
 }

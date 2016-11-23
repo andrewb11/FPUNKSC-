@@ -12,10 +12,6 @@ EBTNodeResult::Type UBTTask_DetermineCampSafety::ExecuteTask(UBehaviorTreeCompon
 {
 
 	Super::ExecuteTask(OwnerComp, NodeMemory);
-
-
-	
-
 	AHeroBase* hero = Cast<AHeroBase>(OwnerComp.GetAIOwner()->GetPawn());
 	AHeroAIController* heroAI = Cast<AHeroAIController>(OwnerComp.GetAIOwner());
 	ACreepCamp* targetCamp = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("CampTarget"));
@@ -26,6 +22,12 @@ EBTNodeResult::Type UBTTask_DetermineCampSafety::ExecuteTask(UBehaviorTreeCompon
 	}
 	if (hero != nullptr && targetCamp!= nullptr)
 	{
+
+		if (heroAI->GetNumOwnedCamps() == 0)
+		{
+			return EBTNodeResult::Succeeded;
+		}
+
 
 		if (hero->ActorHasTag("Cyber"))
 			enemyHero = targetCamp->GetDieselHero();
@@ -80,7 +82,8 @@ EBTNodeResult::Type UBTTask_DetermineCampSafety::ExecuteTask(UBehaviorTreeCompon
 
 
 				else if (hero->ActorHasTag("Cyber") && targetCamp->IsDieselCapturing() &&
-					(targetCamp->GetNumOfCreepsAtCamp() + enemyHero->GetArmySize()) - heroStats->GetArmySize() >= 5)
+					(targetCamp->GetNumOfCreepsAtCamp() + enemyHero->GetArmySize()) - heroStats->GetArmySize() >= 5 && !OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp") &&
+					!OwnerComp.GetBlackboardComponent()->GetValueAsBool("FoundNearbyEnemyCamp"))
 				{
 					UE_LOG(LogTemp, Error, TEXT("Camp Flagged as Unsafe...Enemy Too Strong!"));
 					targetCamp->SetCampSafety(false);
@@ -92,7 +95,8 @@ EBTNodeResult::Type UBTTask_DetermineCampSafety::ExecuteTask(UBehaviorTreeCompon
 				}
 
 				else if (hero->ActorHasTag("Diesel") && targetCamp->IsCyberCapturing() &&
-					(targetCamp->GetNumOfCreepsAtCamp() + enemyHero->GetArmySize()) - heroStats->GetArmySize() >= 5)
+					(targetCamp->GetNumOfCreepsAtCamp() + enemyHero->GetArmySize()) - heroStats->GetArmySize() >= 5 && !OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp") &&
+					!OwnerComp.GetBlackboardComponent()->GetValueAsBool("FoundNearbyEnemyCamp"))
 				{
 					UE_LOG(LogTemp, Error, TEXT("Camp Flagged as Unsafe...Enemy Too Strong!"));
 					targetCamp->SetCampSafety(false);

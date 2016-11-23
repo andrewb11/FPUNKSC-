@@ -18,7 +18,7 @@ EBTNodeResult::Type UBTTask_Escape::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	{		
 		healingWell = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("HealingWell"));
 		bNotifyTick = true;
-		sacrificeCreepAbility = hero->GetAbility(3);
+		sacrificeCreepAbility = hero->GetAbility(4);
 		return EBTNodeResult::InProgress;
 	}
 		return EBTNodeResult::Failed;
@@ -27,13 +27,38 @@ EBTNodeResult::Type UBTTask_Escape::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 void UBTTask_Escape::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
-	if (hero->GetPlayerHealthAsDecimal() <= 0.5f)
+	if (hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort)
 	{
 		if (hero->GetArmySize() > 0 && sacrificeCreepAbility != nullptr && sacrificeCreepAbility->CanUse())
 		{
 			UE_LOG(LogTemp, Error, TEXT("AI Sacrificed Creep"));
 			sacrificeCreepAbility->Use();
 		}
+
+
+
+		if (hero->CheckForNearbyOnwedCreepCamps()) 
+		{
+			
+			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		}
+
+
+		if (hero->CheckForNearbyEnemyHero())
+		{
+			enemyHero = hero->GetNearbyEnemyHero();
+
+			if (enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() < 0 ||
+				enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() < healthPercentageDifference)
+			{
+				UE_LOG(LogTemp, Error, TEXT("AI Thinks It can still fight"));
+				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+			}
+		}
+
+		
+
+
 		if (!hero->InsideHealingWell())
 		{
 			OwnerComp.GetAIOwner()->MoveToActor(healingWell, 50, true, true, false);

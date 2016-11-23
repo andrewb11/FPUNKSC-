@@ -17,8 +17,8 @@ EBTNodeResult::Type UBTTask_MoveToCamp::ExecuteTask(UBehaviorTreeComponent& Owne
 	heroAI = Cast<AHeroAIController>(OwnerComp.GetAIOwner());
 	hero = Cast<AHeroBase>(OwnerComp.GetAIOwner()->GetPawn());
 	neutralCampExists = OwnerComp.GetBlackboardComponent()->GetValueAsBool("NeutralCampsExist");
-	if (hero->CheckForNearbyEnemyHero())
-		return EBTNodeResult::Failed;
+	
+
 
 	if (campGoal == EReasonForGoingToCamp::RGC_Capturing)
 	{
@@ -27,9 +27,11 @@ EBTNodeResult::Type UBTTask_MoveToCamp::ExecuteTask(UBehaviorTreeComponent& Owne
 			return EBTNodeResult::Failed;
 		}
 
-		targetCamp = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("CampTarget"));
 		if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("ReachedCamp"))
 			return EBTNodeResult::Succeeded;
+
+		targetCamp = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("CampTarget"));
+		
 	}
 	else if (campGoal == EReasonForGoingToCamp::RGC_Recruiting)
 	{
@@ -46,10 +48,14 @@ EBTNodeResult::Type UBTTask_MoveToCamp::ExecuteTask(UBehaviorTreeComponent& Owne
 		targetCamp = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("DefendCampTarget"));
 	}
 
+	else if (campGoal == EReasonForGoingToCamp::RGC_DefendingBase)
+	{
+		baseStructure = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("BaseStructure"));
+	}
 	if (hero != nullptr)
 	{
 		heroStats = hero->GetHeroStats();
-		sacrificeCreepAbility = hero->GetAbility(3);
+		sacrificeCreepAbility = hero->GetAbility(4);
 		return EBTNodeResult::InProgress;	
 	}
 
@@ -67,6 +73,19 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 	heroStats->UpdateStats();
 	
+
+	if ((campGoal!= EReasonForGoingToCamp::RGC_DefendingBase && campGoal != EReasonForGoingToCamp::RGC_Recruiting)  && hero->CheckIfTowerIsBeingAttacked())
+	{
+		OwnerComp.GetBlackboardComponent()->SetValueAsBool("BaseBeingAttacked", true);
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+
+	}
+	else
+	{
+		OwnerComp.GetBlackboardComponent()->SetValueAsBool("BaseBeingAttacked", false);
+
+	}
+
 	if (heroStats->GetHealthPercent() <= 0.5f && heroStats->GetArmySize() > 0 && sacrificeCreepAbility != nullptr && sacrificeCreepAbility->CanUse() ) 
 	{
 		UE_LOG(LogTemp, Error, TEXT("AI Sacrificed Creep"));
@@ -76,7 +95,7 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 	if (heroStats->GetHealthPercent() < healthPercentageAbort)
 	{
-		UE_LOG(LogTemp, Display, TEXT("AI HAS LOW HP WHILE HEADING TO CAMP"));
+		UE_LOG(LogTemp, Error, TEXT("AI HAS LOW HP WHILE Moving to target"));
 		//heroAI->ResetAITreeTaskStatus();
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 
@@ -137,7 +156,7 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 		}
 
 
-		else if (heroAI->CheckCampBeingAttacked() && !heroAI->GetCampBeingAttacked()->AIAbondonedCamp())
+		else if (heroAI->CheckCampBeingAttacked() && !(heroAI->GetCampBeingAttacked()->AIAbondonedCamp()))
 		{
 			UE_LOG(LogTemp, Error, TEXT("Senses Camp Being Attacked"));
 			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
@@ -156,11 +175,13 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 
 
-		if (hero->CheckForNearbyEnemyHero())
+		if (hero->CheckForNearbyEnemyHero() && hero->GetDistanceTo(targetCamp) > 850.0f)
 		{
 			//UE_LOG(LogTemp, Display, TEXT("AI SENSES ENEMY WHILE HEADING TO RECURIT CAMP"));
 			//heroAI->ResetAITreeTaskStatus();
-			if (hero->GetNearbyEnemyHero()->GetArmySize() - hero->GetArmySize() <= creepDifferenceAllowed)
+			enemyHero = hero->GetNearbyEnemyHero();
+			if (((hero->GetPlayerHealthAsDecimal() > healthPercentageAbort || enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() <= 0 ||
+				enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort) && enemyHero->GetArmySize() - hero->GetArmySize() <= creepDifferenceAllowed))
 			{
 				UE_LOG(LogTemp, Error, TEXT("Senses safe enemy nearby...was recruiting"));
 				FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
@@ -168,7 +189,7 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 		}
 
 
-		else if (heroAI->CheckCampBeingAttacked() && !heroAI->GetCampBeingAttacked()->AIAbondonedCamp())
+		else if (heroAI->CheckCampBeingAttacked() && !heroAI->GetCampBeingAttacked()->AIAbondonedCamp() && hero->GetDistanceTo(targetCamp) >1000 )
 		{
 			UE_LOG(LogTemp, Error, TEXT("Senses Camp Being Attacked"));
 			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
@@ -181,13 +202,13 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 		if (hero->GetDistanceTo(targetCamp) <= 700)
 		{
-			UE_LOG(LogTemp, Display, TEXT("AI Reached Recruitment Camp"));
+			UE_LOG(LogTemp, Display, TEXT("AI Reached Defending Camp"));
 			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		}
 
 
 
-		if (hero->CheckForNearbyEnemyHero())
+		if (hero->CheckForNearbyEnemyHero() )
 		{
 			//UE_LOG(LogTemp, Display, TEXT("AI SENSES ENEMY WHILE HEADING TO RECURIT CAMP"));
 			//heroAI->ResetAITreeTaskStatus();
@@ -209,6 +230,24 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 			}
 			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		}
+
+	}
+
+	else if (campGoal == EReasonForGoingToCamp::RGC_DefendingBase)
+	{
+		if (hero->GetDistanceTo(baseStructure) <= 500)
+		{
+			UE_LOG(LogTemp, Display, TEXT("AI Reached Defending Base Structure"));
+			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		}
+
+		if (hero->CheckForNearbyEnemyHero() || hero->CheckForNearbyCreepsInArmy() || hero->CheckForNearbyOnwedCreepCamps())
+		{
+			//UE_LOG(LogTemp, Display, TEXT("AI SENSES ENEMY WHILE HEADING TO RECURIT CAMP"));
+			//heroAI->ResetAITreeTaskStatus();
+			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		}
+
 
 	}
 

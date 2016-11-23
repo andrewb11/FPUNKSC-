@@ -12,7 +12,13 @@
 
 EBTNodeResult::Type UBTTask_CheckStatusOfOwnedCamps::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
+
 	Super::ExecuteTask(OwnerComp, NodeMemory);
+	if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("GoingForWin"))
+	{
+		return EBTNodeResult::Failed;
+	}
+
 	hero = Cast<AHeroBase>(OwnerComp.GetAIOwner()->GetPawn());
 	heroAI = Cast<AHeroAIController> (OwnerComp.GetAIOwner());
 	
@@ -28,19 +34,22 @@ EBTNodeResult::Type UBTTask_CheckStatusOfOwnedCamps::ExecuteTask(UBehaviorTreeCo
 
 			if (campBeingAttacked != nullptr)
 			{
+				if(campBeingAttacked->AIAbondonedCamp())
+					return  EBTNodeResult::Failed;
+
 				if (hero->ActorHasTag("Cyber"))
 					enemyHero = campBeingAttacked->GetDieselHero();
 				else
 					enemyHero = campBeingAttacked->GetCyberHero();
 
-				if (campBeingAttacked->GetNumOfCreepsAtCamp() >= numCreepsAlwaysDefend && (enemyHero->GetArmySize() - hero->GetArmySize() <= creepDifferenceAllowed
-					&& enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() <= healthPercentDifferenceAllowed
-					&& enemyHero->GetLevel() - hero->GetLevel() <= levelDifferenceAllowed))
+				if (( (campBeingAttacked->GetNumOfCreepsAtCamp() >= numCreepsAlwaysDefend  || campBeingAttacked == heroAI->GetHomeCamp() ) && enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() <= healthPercentDifferenceAllowed &&
+					hero->GetPlayerHealthAsDecimal() > healthPercentRequired && hero->GetDistanceTo(campBeingAttacked) <= 7000.0f)|| heroAI->GetNumOwnedCamps() == 1)
 				{
 					//Too Many Creeps At Camp...Defend
 					UE_LOG(LogTemp, Error, TEXT("Too Many Creeps At Camp...Defend"));
 					OwnerComp.GetBlackboardComponent()->SetValueAsObject("DefendCampTarget", campBeingAttacked);
 					OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsDefendingCamp", true);
+					OwnerComp.GetBlackboardComponent()->SetValueAsBool("AgressiveMode", true);
 					return  EBTNodeResult::Succeeded;
 				}
 
@@ -57,17 +66,17 @@ EBTNodeResult::Type UBTTask_CheckStatusOfOwnedCamps::ExecuteTask(UBehaviorTreeCo
 					return  EBTNodeResult::Failed;
 				}
 
-				if (hero->GetDistanceTo(campBeingAttacked) <= hero->GetDistanceTo(otherCampObjective)
-					&& (enemyHero->GetArmySize() - hero->GetArmySize() <= creepDifferenceAllowed
+				else if ((hero->GetDistanceTo(campBeingAttacked) <= hero->GetDistanceTo(otherCampObjective) + 250)
+					&& enemyHero->GetArmySize() - hero->GetArmySize() <= creepDifferenceAllowed
 					&& enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() <= healthPercentDifferenceAllowed
-					&& enemyHero->GetLevel() - hero->GetLevel() <= levelDifferenceAllowed))
+					&& enemyHero->GetLevel() - hero->GetLevel() <= levelDifferenceAllowed && hero->GetPlayerHealthAsDecimal() > healthPercentRequired)
 				{
 
-					//AI THINKS IT CAN DEFEND AGAINST ENEMY HERO
-					UE_LOG(LogTemp, Error, TEXT("Safe or close enough to defend"));
-					OwnerComp.GetBlackboardComponent()->SetValueAsObject("DefendCampTarget", campBeingAttacked);
-					OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsDefendingCamp", true);
-					return  EBTNodeResult::Succeeded;
+						//AI THINKS IT CAN DEFEND AGAINST ENEMY HERO
+						UE_LOG(LogTemp, Error, TEXT("Safe or close enough to defend"));
+						OwnerComp.GetBlackboardComponent()->SetValueAsObject("DefendCampTarget", campBeingAttacked);
+						OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsDefendingCamp", true);
+						return  EBTNodeResult::Succeeded;
 
 
 				}

@@ -20,5 +20,7 @@ protected:
 	UFUNCTION()
 		virtual	void ApplyEffect() override;
 	
+	class AHeroAIController* heroAI;
+	class AHeroBase* hero;
 	
 };

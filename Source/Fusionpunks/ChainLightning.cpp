@@ -9,7 +9,7 @@
 // Sets default values
 AChainLightning::AChainLightning()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	static ConstructorHelpers::FObjectFinder<UParticleSystem> ps(TEXT("ParticleSystem'/Game/ParticleEffects/LaserBeam2.LaserBeam2'"));
 	boxCollider = CreateDefaultSubobject<UBoxComponent>(TEXT("Colider"));

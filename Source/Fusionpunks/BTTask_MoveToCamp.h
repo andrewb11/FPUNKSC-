@@ -14,7 +14,8 @@ enum class EReasonForGoingToCamp : uint8
 	RGC_Capturing UMETA(DisplayName = "CapturingCamp"),
 	RGC_Recruiting UMETA(DisplayName = "RecruitingCamp"),
 	RGC_DefendingCamp UMETA(DisplayName = "DefendingCamp"),
-	RGC_GoingForWin	UMETA(DisplayName ="GoingForWin")
+	RGC_GoingForWin	UMETA(DisplayName ="GoingForWin"), 
+	RGC_DefendingBase UMETA(DisplayName ="DefendingBase" )
 
 };
 
@@ -28,7 +29,7 @@ protected:
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
 	
 	class ACreepCamp* targetCamp;
-	class AHeroBase* hero;
+	class AHeroBase *hero, *enemyHero;
 	class AHeroAIController* heroAI;
 	class HeroStats* heroStats;
 	bool neutralCampExists;
@@ -38,5 +39,7 @@ protected:
 	UPROPERTY(EditAnywhere)
 		float healthPercentageAbort = 0.2f;
 	UPROPERTY(EditAnywhere)
-		int32 creepDifferenceAllowed = 3;
+		int32 creepDifferenceAllowed = 5;
+
+	AActor* baseStructure;
 };

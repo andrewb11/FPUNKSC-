@@ -50,8 +50,18 @@ void UBTTask_ConfirmCreepCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 		targetCamp->SetAIAbondonedCamp(false);
 		OwnerComp.GetBlackboardComponent()->SetValueAsBool("ReachedCamp", false);
 		OwnerComp.GetBlackboardComponent()->SetValueAsBool("CapturedCamp", true);
-		OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsDefendingCamp", false);
 		OwnerComp.GetBlackboardComponent()->SetValueAsBool("FoundNearbyEnemyCamp", false);
+		if (campType == ETypeOfCamp::TC_DefendCamp)
+		{
+			OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsDefendingCamp", false);
+			OwnerComp.GetBlackboardComponent()->SetValueAsBool("AgressiveMode", true);
+		}
+		else if (campType == ETypeOfCamp::TC_CaptureCamp)
+		{
+			OwnerComp.GetBlackboardComponent()->SetValueAsBool("AgressiveMode", false);
+		}
+		
+
 		heroAICont->ResetAllCampsSafetyStatus();
 
 		//testing

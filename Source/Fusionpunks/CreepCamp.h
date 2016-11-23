@@ -203,7 +203,7 @@ public:
 	FORCEINLINE const float GetDistanceValue() const { return distanceValue; }
 	FORCEINLINE void SetDistanceValue(float value) { distanceValue = value; }
 	FORCEINLINE const ECampType GetCampType() const {return campType;}
-	FORCEINLINE bool AIAbondonedCamp() const { return bAIAbondonedCamp; }
+	FORCEINLINE bool AIAbondonedCamp() { return bAIAbondonedCamp; }
 	FORCEINLINE void SetAIAbondonedCamp(bool status) { bAIAbondonedCamp = status; }
 
 //Creep Spawn Locations

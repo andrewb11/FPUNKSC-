@@ -15,6 +15,12 @@ EBTNodeResult::Type UBTTask_ChooseRecruitCamp::ExecuteTask(UBehaviorTreeComponen
 	AHeroBase* hero = Cast<AHeroBase>(OwnerComp.GetAIOwner()->GetPawn());
 	nextCaptureObjective = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("CampTarget"));
 
+	if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("BaseBeingAttacked") && currSituation != ESituation::SE_NearbyCamp)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Found Base Being Attacked...wont recruit"));
+		return EBTNodeResult::Failed;
+	}
+
 	if (currSituation == ESituation::SE_CapturingUnsafeCamp || (currSituation == ESituation::SE_EngagingEnemyHero && OwnerComp.GetBlackboardComponent()->GetValueAsBool("ShouldRecruit")))
 	{
 		if (heroAI != nullptr && hero != nullptr)
@@ -25,7 +31,7 @@ EBTNodeResult::Type UBTTask_ChooseRecruitCamp::ExecuteTask(UBehaviorTreeComponen
 			{
 				for (int32 i = 0; i < ownedCreepCamps.Num(); i++)
 				{
-					if (!ownedCreepCamps[i]->HasBeenRecruitedFrom() && ownedCreepCamps[i]->GetNumOfCreepsAtCamp() - allowedNumCreepsLeftAtCamp > 0)
+					if (/*!ownedCreepCamps[i]->HasBeenRecruitedFrom() && */ ownedCreepCamps[i]->GetNumOfCreepsAtCamp() - allowedNumCreepsLeftAtCamp > 0)
 					{
 						OwnerComp.GetBlackboardComponent()->SetValueAsInt("NumCreepsToRecruit",
 							ownedCreepCamps[i]->GetNumOfCreepsAtCamp() - allowedNumCreepsLeftAtCamp);
@@ -45,7 +51,11 @@ EBTNodeResult::Type UBTTask_ChooseRecruitCamp::ExecuteTask(UBehaviorTreeComponen
 
 	else if (currSituation == ESituation::SE_NearbyCamp)
 	{
-
+		if (hero->HasJustRecruited())
+		{
+			UE_LOG(LogTemp, Error, TEXT("Already Just Recruited"));
+			return EBTNodeResult::Failed;
+		}
 
 		if (hero->CheckForNearbyOnwedCreepCamps())
 		{
@@ -71,14 +81,23 @@ EBTNodeResult::Type UBTTask_ChooseRecruitCamp::ExecuteTask(UBehaviorTreeComponen
 
 	else if (currSituation == ESituation::SE_AfterCapturing)
 	{
+		
+		if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("NeutralCampsExist"))
+		{
+			return EBTNodeResult::Failed;
+		}
+		
+		
 		TArray<ACreepCamp*> ownedCreepCamps = heroAI->GetSortedOwnedCampList();
+
+	
 
 		if (ownedCreepCamps.Num() > 0)
 		{
 			for (int32 i = 0; i < ownedCreepCamps.Num(); i++)
 			{
-				if (!OwnerComp.GetBlackboardComponent()->GetValueAsBool("GoingForWin") && !ownedCreepCamps[i]->HasBeenRecruitedFrom() && ownedCreepCamps[i]->GetNumOfCreepsAtCamp() - allowedNumCreepsLeftAtCamp > 0 &&
-					hero->GetDistanceTo(ownedCreepCamps[i]) <= hero->GetDistanceTo(nextCaptureObjective))
+				if (!OwnerComp.GetBlackboardComponent()->GetValueAsBool("GoingForWin") && /*!ownedCreepCamps[i]->HasBeenRecruitedFrom() && */ ownedCreepCamps[i]->GetNumOfCreepsAtCamp() - allowedNumCreepsLeftAtCamp > 0)
+					//hero->GetDistanceTo(ownedCreepCamps[i]) <= hero->GetDistanceTo(nextCaptureObjective))
 				{
 					OwnerComp.GetBlackboardComponent()->SetValueAsInt("NumCreepsToRecruit",
 						ownedCreepCamps[i]->GetNumOfCreepsAtCamp() - allowedNumCreepsLeftAtCamp);

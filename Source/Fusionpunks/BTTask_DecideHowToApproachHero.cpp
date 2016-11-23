@@ -20,7 +20,14 @@ EBTNodeResult::Type UBTTask_DecideHowToApproachHero::ExecuteTask(UBehaviorTreeCo
 		attackTarget = Cast<AHeroBase>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("AttackTarget"));
 		campTarget = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("CampTarget"));
 		healingWell = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("HealingWell"));
+		//OwnerComp.GetBlackboardComponent()->SetValueAsBool("IgnoreHeroMode", false);
 		enemyCreep = nullptr;
+
+		if (attackTarget->IsRespawning())
+		{
+			return EBTNodeResult::Failed;
+		}
+
 		if (attackTarget != nullptr && campTarget!= nullptr)
 		{
 
@@ -35,17 +42,27 @@ EBTNodeResult::Type UBTTask_DecideHowToApproachHero::ExecuteTask(UBehaviorTreeCo
 			
 			}
 
-			else if ((hero->IsCapturing() || hero->GetDistanceTo(campTarget) <= 1000) && campTarget->GetCampType() != teamCampType || OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp"))
+			else if ((hero->IsCapturing() || hero->GetDistanceTo(campTarget) <= 850.0f) && campTarget->GetCampType() != teamCampType || (OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp") && hero->GetDistanceTo(Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("DefendCampTarget"))) <= 850.0f))
 			{	
-				//OwnerComp.GetBlackboardComponent()->SetValueAsObject("HeroAttackSituationTarget", campTarget);
+				
+				if(OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp"))
+					campTarget = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("DefendCampTarget"));
+
 				approachStatus = EApproachStatus::AS_DefendingCamp;
 				UE_LOG(LogTemp, Error, TEXT("Defensive State"));
 				
 			}
+
+			else if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("AgressiveMode"))
+			{
+				
+				approachStatus = EApproachStatus::AS_AgressiveChase;
+				UE_LOG(LogTemp, Error, TEXT("Agressive State activated because AI in agressive mode"));
+			}
 			else if ( (attackTarget->GetArmySize() - hero->GetArmySize() <= creepDifferenceAllowed
 				&& attackTarget->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() <= healthPercentDifferenceAllowed
 				&& attackTarget->GetLevel() - hero->GetLevel() <= levelDifferenceAllowed) || 
-				attackTarget->GetPlayerHealthAsDecimal() <= healthPercentRequired)
+				attackTarget->GetPlayerHealthAsDecimal() <= healthPercentRequired || OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp"))
 			{			
 				approachStatus = EApproachStatus::AS_AgressiveChase;	
 				UE_LOG(LogTemp, Error, TEXT("Agressive State"));
@@ -53,8 +70,10 @@ EBTNodeResult::Type UBTTask_DecideHowToApproachHero::ExecuteTask(UBehaviorTreeCo
 
 			else
 			{
-				approachStatus = EApproachStatus::AS_EscapingToRecruitCreeps;
-				UE_LOG(LogTemp, Error, TEXT("Escaping to recruit creeps"));
+				approachStatus = EApproachStatus::AS_AgressiveChase;
+				//OwnerComp.GetBlackboardComponent()->SetValueAsBool("IgnoreHeroMode", true);
+				//UE_LOG(LogTemp, Error, TEXT("Ignore Hero Mode"));
+				//return EBTNodeResult::Failed;
 				
 			}
 			bNotifyTick = true;
@@ -77,7 +96,10 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 {
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
 
-
+	if(attackTarget->IsRespawning())
+	{
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+	}
 
 	if (hero->GetPlayerHealthAsDecimal() <= healthPercentRequired && attackTarget->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() >0 &&
 		attackTarget->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() > healthPercentDifferenceAllowed)
@@ -86,9 +108,11 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 	}
 
+	
+
 	if (approachStatus == EApproachStatus::AS_DefendingCamp)
 	{
-		if (attackTarget->IsCapturing() || attackTarget->GetDistanceTo(campTarget) <= 1000 || attackTarget->GetPlayerHealthAsDecimal() <= 0.2f)
+		if (attackTarget->IsCapturing() || attackTarget->GetDistanceTo(campTarget) <= 850.0f || attackTarget->GetPlayerHealthAsDecimal() <= 0.2f)
 		{
 			if ((hero->IsHeroAttacking() || !hero->IsCreepAttacking()))
 			{
@@ -179,16 +203,13 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 	}
 	else if (approachStatus == EApproachStatus::AS_AgressiveChase)
 	{
-
 		if (hero->IsHeroAttacking() || !hero->IsCreepAttacking())
 		{
 			if (hero->CheckForNearbyEnemyHero())
 			{
 				if (hero->GetDistanceTo(attackTarget) >= 300)
 				{
-					//FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(hero->GetActorLocation(), attackTarget->GetActorLocation());
-					//lookAtTargetRotation.Pitch = 0;
-					//hero->SetActorRotation(lookAtTargetRotation);
+				
 					OwnerComp.GetAIOwner()->MoveToActor(attackTarget, 50, false, true, false);
 				}
 				else
@@ -207,16 +228,13 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 
 		else if (hero->IsCreepAttacking())
 		{
-			if (hero->CheckForNearbyCreepsInArmy())
+			if (hero->CheckForNearbyEnemyCreeps())
 			{
 				if (enemyCreep == nullptr || enemyCreep->GetBIsDead())
 					enemyCreep = hero->GetClosestEnemyCreep();
 
 				if (hero->GetDistanceTo(enemyCreep) >= 300)
 				{
-					//FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(hero->GetActorLocation(), enemyCreep->GetActorLocation());
-					//lookAtTargetRotation.Pitch = 0;
-					//hero->SetActorRotation(lookAtTargetRotation);
 					OwnerComp.GetAIOwner()->MoveToActor(enemyCreep, 50, false, true, false);
 				}
 				else
@@ -234,12 +252,5 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 		}
 	}
 
-	else if (approachStatus == EApproachStatus::AS_EscapingToRecruitCreeps)
-	{
-		//heroAI->GetSortedOwnedCampList();
-		OwnerComp.GetBlackboardComponent()->SetValueAsBool("ShouldRecruit", true);
-		heroAI->ResetAllCampsRecruitStatus();
-		//UE_LOG(LogTemp, Error, TEXT("Escaping to recruit creeps TICK"));
-		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-	}
+	
 }

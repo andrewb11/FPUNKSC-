@@ -17,15 +17,38 @@ EBTNodeResult::Type UBTTask_CheckHealth::ExecuteTask(UBehaviorTreeComponent& Own
 	if (hero != nullptr)
 	{
 		
-		if (hero->GetPlayerHealthAsDecimal() >= healthPercentage || hero->bIsRespawning)
-		{
-			return EBTNodeResult::Succeeded;
-		}
-		else 
-		{
-			UE_LOG(LogTemp, Error, TEXT("AI Needs To Heal"));
 
-			return EBTNodeResult::Failed;
+		if (hero->CheckForNearbyEnemyHero())
+		{
+			AHeroBase* enemyHero = hero->GetNearbyEnemyHero();
+
+			if ((hero->GetPlayerHealthAsDecimal() <= healthPercentage && enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() > 0 &&
+				enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() > healthPercentage))
+			{
+				UE_LOG(LogTemp, Error, TEXT("AI Needs To Heal"));
+				return EBTNodeResult::Failed;
+			}
+
+			else
+			{
+				return EBTNodeResult::Succeeded;
+			}
+
+		}
+
+		else
+		{
+
+			if (hero->GetPlayerHealthAsDecimal() >= healthPercentage || hero->bIsRespawning)
+			{
+				return EBTNodeResult::Succeeded;
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("AI Needs To Heal"));
+
+				return EBTNodeResult::Failed;
+			}
 		}
 
 

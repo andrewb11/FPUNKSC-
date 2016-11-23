@@ -15,32 +15,30 @@ public:
 	ACyberHeroCharacter();
 
 	// APawn interface
-	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
+	//virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 	// End of APawn interface
 	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime);
+	//virtual void Tick(float DeltaTime);
 
 protected:
 	virtual void LevelUp() override;
 
 private:
-	UPROPERTY(EditAnywhere, category = Ability)
-		TSubclassOf<class AAbilityBase> chainLightningAbility;
+
 	
 	TArray<AActor*> affectedActors;
 	bool skillSelected = false;
 
 
 public:
-	void DetermineClickEvent();
-	virtual void UseAbility1() override;
-	void UseSkill(AActor* enemy);
+	//void DetermineClickEvent();
+	//void UseSkill(AActor* enemy);
 	void AddAffectedActor(AActor* enemy);
 	bool IsAffected(AActor* enemy);
 	void HighlightTarget(AActor* enemy, TArray<FOverlapResult> enemies);
 	void UnHighlightTarget(AActor* enemy);
 	void UnHighlightAll(TArray<FOverlapResult> enemies);
-	AActor* UpdateTarget();
+	//AActor* UpdateTarget();
 	
 
 //Skill Target related

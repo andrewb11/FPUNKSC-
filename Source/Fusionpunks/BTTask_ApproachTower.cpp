@@ -33,10 +33,15 @@ void UBTTask_ApproachTower::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* N
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
 
 
-	
-	if (hero->GetDistanceTo(attackTarget) > 500.0f)
+	if (hero->CheckForNearbyInteractions())
 	{
-		OwnerComp.GetAIOwner()->MoveToActor(attackTarget, 300.0f, false, true, false);
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+	}
+
+	else if (hero->GetDistanceTo(attackTarget) > 500.0f)
+	{
+		OwnerComp.GetAIOwner()->MoveToActor(attackTarget, 100.0f, true, true, false);
+
 	}
 	else
 	{

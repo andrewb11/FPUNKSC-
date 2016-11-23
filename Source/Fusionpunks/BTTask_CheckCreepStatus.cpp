@@ -14,11 +14,17 @@ EBTNodeResult::Type UBTTask_CheckCreepStatus::ExecuteTask(UBehaviorTreeComponent
 	campTarget = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("CampTarget"));
 	TArray<ACreep*> creepsAtCamp = campTarget->GetCreepArray();
 	
-	if (creepsAtCamp.Contains(creepTarget)|| !creepTarget->bBelongsToCamp || OwnerComp.GetBlackboardComponent()->GetValueAsBool("GoingForWin"))
-		return EBTNodeResult::Succeeded;
+	if (creepTarget != nullptr && !creepTarget->GetBIsDead() && !creepTarget->IsActorBeingDestroyed())
+	{
+		if (creepsAtCamp.Contains(creepTarget) || !creepTarget->bBelongsToCamp || OwnerComp.GetBlackboardComponent()->GetValueAsBool("GoingForWin"))
+			return EBTNodeResult::Succeeded;
+		else
+			return EBTNodeResult::Failed;
+	}
 	else
+	{
 		return EBTNodeResult::Failed;
-
+	}
 
 }
 

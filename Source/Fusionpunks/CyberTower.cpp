@@ -11,6 +11,12 @@ ACyberTower::ACyberTower()
 {
 	beam = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("Beam Particle"));	
 	beam->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	turretBase = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TurretBase"));
+	turretCone = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TurretCone"));
+	turretGun = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TurretGun"));
+	turretBase->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	turretCone->AttachToComponent(turretBase, FAttachmentTransformRules::KeepRelativeTransform);
+	turretGun->AttachToComponent(turretCone, FAttachmentTransformRules::KeepRelativeTransform);
 	damage = 2.0f;
 	damageEverySeconds = 0.1f;
 
@@ -53,20 +59,26 @@ void ACyberTower::CleanUp()
 void ACyberTower::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	
 	if (enemyUnits.Num() > 0)
 	{
+		//UE_LOG(LogTemp, Log, TEXT("Cyber Tower found Player"));
 		if (enemyUnits[0]->IsA(ACharacter::StaticClass()))
 		{
-			//UE_LOG(YourLog, Log, TEXT("Attacking Player!"));
+		//	UE_LOG(LogTemp, Log, TEXT("Tower Attacking Player!"));
 
-			if (!beam->bWasActive) {
+			if (!beam->bWasActive) 
+			{
 				beam->Activate();
 				beam->SetVisibility(true);
 				beam->bWasDeactivated = false;
 				beam->bWasActive = true;
-				UE_LOG(LogTemp, Log, TEXT("Activating Laser Beam!"));
+				//UE_LOG(LogTemp, Log, TEXT("Activating Laser Beam!"));
 			}
-			beam->SetBeamSourcePoint(0, sourceLocation, 0);
+			FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(turretGun->GetComponentLocation(), enemyUnits[0]->GetActorLocation());
+			turretGun->SetRelativeRotation(lookAtTargetRotation);
+			beam->SetBeamSourcePoint(0, turretGun->GetComponentLocation(), 0);
 			beam->SetBeamTargetPoint(0, enemyUnits[0]->GetActorLocation(), 0);
 			
 			if (!bIsDealingDMG)

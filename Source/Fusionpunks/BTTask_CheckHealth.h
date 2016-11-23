@@ -17,6 +17,7 @@ protected:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 	
 	UPROPERTY(EditAnywhere)
-		float healthPercentage;
-	
+		float healthPercentage = 0.2f;
+	UPROPERTY(EditAnywhere)
+		float creepDifferenceAllowed = 5;
 };

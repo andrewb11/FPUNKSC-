@@ -27,9 +27,9 @@ class FUSIONPUNKS_API UBTTask_CheckStatusOfOwnedCamps : public UBTTaskNode
 	UPROPERTY(EditAnywhere)
 		int32 creepDifferenceAllowed = 3;
 	UPROPERTY(EditAnywhere)
-		float healthPercentRequired = 0.15f;
+		float healthPercentRequired = 0.2f;
 	UPROPERTY(EditAnywhere)
-		float healthPercentDifferenceAllowed = 0.5f;
+		float healthPercentDifferenceAllowed = 0.35f;
 	UPROPERTY(EditAnywhere)
 		int32  levelDifferenceAllowed = 10;
 	

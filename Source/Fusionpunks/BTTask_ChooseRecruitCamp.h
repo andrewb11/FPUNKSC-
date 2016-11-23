@@ -33,6 +33,8 @@ class FUSIONPUNKS_API UBTTask_ChooseRecruitCamp : public UBTTaskNode
 		ESituation currSituation;
 
 	class ACreepCamp* nextCaptureObjective;
+
+
 		
 
 };

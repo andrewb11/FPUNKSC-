@@ -36,7 +36,7 @@ void ACyberHeroCharacter::BeginPlay()
 	}
 }
 
-void ACyberHeroCharacter::Tick(float DeltaTime)
+/*void ACyberHeroCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -44,23 +44,23 @@ void ACyberHeroCharacter::Tick(float DeltaTime)
 	{
 		UpdateTarget();
 	}
-}
+}*/
 
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void ACyberHeroCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
+/*void ACyberHeroCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
 	// Set up gameplay key bindings
 	Super::SetupPlayerInputComponent(InputComponent);
 	check(InputComponent);
 
-	InputComponent->BindAction("BasicAttack", IE_Pressed, this, &ACyberHeroCharacter::DetermineClickEvent);
+	//InputComponent->BindAction("BasicAttack", IE_Pressed, this, &ACyberHeroCharacter::DetermineClickEvent);
 	//InputComponent->BindAction("Skill1", IE_Pressed, this, &ACyberHeroCharacter::OnSkillPressed);
-}
+}*/
 
 
-void ACyberHeroCharacter::DetermineClickEvent()
+/*void ACyberHeroCharacter::DetermineClickEvent()
 {
 	if (skillSelected)
 	{
@@ -76,10 +76,10 @@ void ACyberHeroCharacter::DetermineClickEvent()
 	{
 		MeleeAttack();
 	}
-}
+}*/
 
 
-AActor* ACyberHeroCharacter::UpdateTarget()
+/*AActor* ACyberHeroCharacter::UpdateTarget()
 {
 	//UE_LOG(LogTemp, Display, TEXT("Skill Used"));
 	if (oldTargetResults.Num() > 0)
@@ -141,9 +141,9 @@ AActor* ACyberHeroCharacter::UpdateTarget()
 			UE_LOG(LogTemp, Display, TEXT("No Enemies Nearby"));
 			return NULL;
 	}
-}
+}*/
 
-void ACyberHeroCharacter::UseAbility1()
+/*void ACyberHeroCharacter::UseAbility1()
 {
 
 	if (!skillSelected)
@@ -160,9 +160,9 @@ void ACyberHeroCharacter::UseAbility1()
 			UnHighlightTarget(currentTarget);
 		}
 	}
-}
+}*/
 
-void ACyberHeroCharacter::UseSkill(AActor* enemy)
+/*void ACyberHeroCharacter::UseSkill(AActor* enemy)
 {
 
 	FActorSpawnParameters spawnParams;
@@ -180,7 +180,7 @@ void ACyberHeroCharacter::UseSkill(AActor* enemy)
 	lightning->SetBeamPoints(Cast<AActor>(this), enemy);
 	lightning->Use();
 
-}
+} */
 
 void ACyberHeroCharacter::AddAffectedActor(AActor* enemy)
 {

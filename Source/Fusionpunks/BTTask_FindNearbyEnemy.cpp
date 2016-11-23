@@ -36,7 +36,7 @@ EBTNodeResult::Type UBTTask_FindNearbyEnemy::ExecuteTask(UBehaviorTreeComponent&
 
 		else if (enemyType == ETargetEnemyType::TE_Hero)
 		{
-			if (hero->CheckForNearbyEnemyHero())
+			if (hero->CheckForNearbyEnemyHero() && !hero->GetNearbyEnemyHero()->IsRespawning())
 			{
 				UE_LOG(LogTemp, Error, TEXT("Found Enemy Hero Target"));
 				AHeroBase* enemyHero = hero->GetNearbyEnemyHero();

@@ -81,7 +81,7 @@ void ADieselHeroCharacter::SetupPlayerInputComponent(class UInputComponent* Inpu
 	// Set up gameplay key bindings
 	Super::SetupPlayerInputComponent(InputComponent);
 	// Set up gameplay key bindings
-	check(InputComponent);
+	
 	
 	InputComponent->BindAction(TEXT("Leap"), IE_Pressed, this, &ADieselHeroCharacter::Leap);
 	InputComponent->BindAction(TEXT("ForcePull"), IE_Pressed, this, &ADieselHeroCharacter::ForcePull);

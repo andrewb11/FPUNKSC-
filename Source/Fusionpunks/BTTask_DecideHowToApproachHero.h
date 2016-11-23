@@ -15,7 +15,7 @@ enum class EApproachStatus : uint8
 	AS_DefendingCamp UMETA(DisplayName = "DefendingCamp"),
 	AS_AgressiveChase UMETA(DisplayName = "AgressiveChase"),
 	AS_EscapingToBase UMETA(DisplayName = "EscapingToBase"),
-	AS_EscapingToRecruitCreeps UMETA(DisplayName = "EscapingToNextCamp")
+	AS_IgnoreEnemyHero UMETA(DisplayName = "IgnoreEnemyHero")
 };
 
 

@@ -171,7 +171,7 @@ public:
 	FORCEINLINE void SetHeroAttacking(bool status)  { bHeroIsAttacking = status; }
 	FORCEINLINE class ACreep* GetAttackingCreep() const { return attackingCreep; }
 	FORCEINLINE class ABase* GetEnemyBase() const { return enemyBase; }
-	
+	FORCEINLINE TArray<class ATowerBase*> GetTeamTowers() const { return teamTowers; }
 	void AddToCapturedCamps(class ACreepCamp* camp);
 	void RemoveFromCapturedCamps(class ACreepCamp* camp);
 	void UpdateHeroStats();
@@ -205,6 +205,11 @@ protected:
 	bool bHeroIsAttacking = false;
 
 	class ACreep* attackingCreep = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, Category = TowerClass)
+		TSubclassOf<class ATowerBase> towerClass;
+
+	TArray<class ATowerBase*> teamTowers;
 
 
 protected:
@@ -248,11 +253,15 @@ public:
 	ACreep* GetClosestEnemyCreep();
 	bool CheckForNearbyCreepsInArmy();
 	bool CheckForNearbyEnemyTowers();
+	void AIRecruited();
+	bool bJustRecruited = false;
 	FORCEINLINE TArray<class ACreep*> GetNearbyEnemyCreeps() const { return nearbyEnemyCreeps; }
 	FORCEINLINE AHeroBase* GetNearbyEnemyHero() const { return nearbyEnemyHero; }
 	FORCEINLINE TArray<class ACreepCamp*> GetNearbyOwnedCreepCamps() const { return nearbyOwnedCreepCamps; }
 	FORCEINLINE class ACreepCamp* GetNearbyEnemyCamp() const { return nearbyEnemyCamp; }
 	FORCEINLINE class ATowerBase* GetNearbyEnemyTower() const { return nearbyEnemyTower; }
+	FORCEINLINE bool HasJustRecruited() const { return bJustRecruited; }
+
 private:
 	//AIHERO
 	TArray<class ACreep*> nearbyEnemyCreeps;
@@ -261,11 +270,16 @@ private:
 	class ACreepCamp* nearbyEnemyCamp;
 	class ATowerBase* nearbyEnemyTower;
 	TArray<class ACreep*> nearbyCreepsInArmy;
+	UFUNCTION()
+		void TriggerRecruitStatusChange();
 
+	FTimerHandle recruitTimerHandle;
 public:
 	TArray<ACreep*> AHeroBase::GetCreepArmyArray();
 	void UpdateCreepArmy();
 	ACreepCamp* visitingCamp;
+
+	bool CheckIfTowerIsBeingAttacked();
 
 
 private:

@@ -25,8 +25,15 @@ public:
 
 private:
 	
+	
 	UPROPERTY(EditDefaultsOnly)
-		UParticleSystemComponent* beam;
+		class UStaticMeshComponent* turretBase;
+	UPROPERTY(EditDefaultsOnly)
+		class UStaticMeshComponent* turretCone;
+	UPROPERTY(EditDefaultsOnly)
+		class UStaticMeshComponent* turretGun;
+	UPROPERTY(EditDefaultsOnly)
+		class UParticleSystemComponent* beam;
 
 	
 	class ALightningTowerDamage* towerDMG;

@@ -22,6 +22,12 @@ EBTNodeResult::Type UBTTask_DecideHowToApproachHero::ExecuteTask(UBehaviorTreeCo
 		healingWell = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("HealingWell"));
 		//OwnerComp.GetBlackboardComponent()->SetValueAsBool("IgnoreHeroMode", false);
 		enemyCreep = nullptr;
+
+		if (attackTarget->IsRespawning())
+		{
+			return EBTNodeResult::Failed;
+		}
+
 		if (attackTarget != nullptr && campTarget!= nullptr)
 		{
 
@@ -36,7 +42,7 @@ EBTNodeResult::Type UBTTask_DecideHowToApproachHero::ExecuteTask(UBehaviorTreeCo
 			
 			}
 
-			else if ((hero->IsCapturing() || hero->GetDistanceTo(campTarget) <= 850.0f) && campTarget->GetCampType() != teamCampType || OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp"))
+			else if ((hero->IsCapturing() || hero->GetDistanceTo(campTarget) <= 850.0f) && campTarget->GetCampType() != teamCampType || (OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp") && hero->GetDistanceTo(Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("DefendCampTarget"))) <= 850.0f))
 			{	
 				
 				if(OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp"))
@@ -56,7 +62,7 @@ EBTNodeResult::Type UBTTask_DecideHowToApproachHero::ExecuteTask(UBehaviorTreeCo
 			else if ( (attackTarget->GetArmySize() - hero->GetArmySize() <= creepDifferenceAllowed
 				&& attackTarget->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() <= healthPercentDifferenceAllowed
 				&& attackTarget->GetLevel() - hero->GetLevel() <= levelDifferenceAllowed) || 
-				attackTarget->GetPlayerHealthAsDecimal() <= healthPercentRequired)
+				attackTarget->GetPlayerHealthAsDecimal() <= healthPercentRequired || OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp"))
 			{			
 				approachStatus = EApproachStatus::AS_AgressiveChase;	
 				UE_LOG(LogTemp, Error, TEXT("Agressive State"));
@@ -90,7 +96,10 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 {
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
 
-
+	if(attackTarget->IsRespawning())
+	{
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+	}
 
 	if (hero->GetPlayerHealthAsDecimal() <= healthPercentRequired && attackTarget->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() >0 &&
 		attackTarget->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() > healthPercentDifferenceAllowed)
@@ -98,6 +107,8 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 		UE_LOG(LogTemp, Error, TEXT("Health to low to engage"));
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 	}
+
+	
 
 	if (approachStatus == EApproachStatus::AS_DefendingCamp)
 	{
@@ -192,16 +203,13 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 	}
 	else if (approachStatus == EApproachStatus::AS_AgressiveChase)
 	{
-
 		if (hero->IsHeroAttacking() || !hero->IsCreepAttacking())
 		{
 			if (hero->CheckForNearbyEnemyHero())
 			{
 				if (hero->GetDistanceTo(attackTarget) >= 300)
 				{
-					//FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(hero->GetActorLocation(), attackTarget->GetActorLocation());
-					//lookAtTargetRotation.Pitch = 0;
-					//hero->SetActorRotation(lookAtTargetRotation);
+				
 					OwnerComp.GetAIOwner()->MoveToActor(attackTarget, 50, false, true, false);
 				}
 				else
@@ -220,16 +228,13 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 
 		else if (hero->IsCreepAttacking())
 		{
-			if (hero->CheckForNearbyCreepsInArmy())
+			if (hero->CheckForNearbyEnemyCreeps())
 			{
 				if (enemyCreep == nullptr || enemyCreep->GetBIsDead())
 					enemyCreep = hero->GetClosestEnemyCreep();
 
 				if (hero->GetDistanceTo(enemyCreep) >= 300)
 				{
-					//FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(hero->GetActorLocation(), enemyCreep->GetActorLocation());
-					//lookAtTargetRotation.Pitch = 0;
-					//hero->SetActorRotation(lookAtTargetRotation);
 					OwnerComp.GetAIOwner()->MoveToActor(enemyCreep, 50, false, true, false);
 				}
 				else

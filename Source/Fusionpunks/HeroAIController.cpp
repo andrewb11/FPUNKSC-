@@ -13,13 +13,17 @@ AHeroAIController::AHeroAIController()
 	BlackboardComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComponent"));
 	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnsensingComponent"));
 	
-	const ConstructorHelpers::FObjectFinder<UBehaviorTree> BTFinder(TEXT("BehaviorTree'/Game/Heroes/AI/HeroAI_Tree.HeroAI_Tree'"));
+/*	if (GetPawn()->ActorHasTag("Cyber"))
+		const ConstructorHelpers::FObjectFinder<UBehaviorTree> BTFinder(TEXT("BehaviorTree'/Game/Heroes/AI/HeroAI_Tree.HeroAI_Tree'"));
 
 	if (IsValid(BTFinder.Object))
 	{
 		BehaviorTreeAsset = BTFinder.Object;
 	}
+	*/
 	bAttachToPawn = true;
+
+	
 	
 }
 void AHeroAIController::Possess(APawn* Pawn)
@@ -28,6 +32,7 @@ void AHeroAIController::Possess(APawn* Pawn)
 	
 	if (BehaviorTreeAsset)
 	{
+
 		BlackboardComponent->InitializeBlackboard(*BehaviorTreeAsset->BlackboardAsset);
 		//UseBlackboard(BehaviorTreeAsset->BlackboardAsset, BlackboardComponent);
 		BehaviorTreeComponent->StartTree(*BehaviorTreeAsset);
@@ -48,6 +53,7 @@ void AHeroAIController::BeginPlay()
 	UE_LOG(LogTemp, Log, TEXT("Found %d CreepCamps."), creepCamps.Num());
 	campPriorityList.GeneratePriorityList(creepCamps, GetPawn());
 	campPriorityList.DisplayDistances();
+	homeCamp = campPriorityList.creepCampList[0];
 
 	
 	
@@ -70,6 +76,7 @@ void AHeroAIController::BeginPlay()
 	BlackboardComponent->SetValueAsBool("ShouldRecruit", false);
 	BlackboardComponent->SetValueAsBool("GoingForWin", false);
 	BlackboardComponent->SetValueAsBool("AgressiveMode", false);
+	BlackboardComponent->SetValueAsBool("BaseBeingAttacked", false);
 	hero = Cast<AHeroBase>(GetPawn());
 	
 }
@@ -89,6 +96,7 @@ void AHeroAIController::ResetAITreeTaskStatus()
 	BlackboardComponent->SetValueAsBool("FoundNearbyEnemyCamp", false);
 	BlackboardComponent->SetValueAsBool("ShouldRecruit", false);
 	BlackboardComponent->SetValueAsBool("AgressiveMode", false);
+	BlackboardComponent->SetValueAsBool("BaseBeingAttacked", false);
 	ResetAllCampsRecruitStatus();
 	ResetAllCampsSafetyStatus();
 }

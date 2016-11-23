@@ -19,6 +19,7 @@ EBTNodeResult::Type UBTTask_MoveToCamp::ExecuteTask(UBehaviorTreeComponent& Owne
 	neutralCampExists = OwnerComp.GetBlackboardComponent()->GetValueAsBool("NeutralCampsExist");
 	
 
+
 	if (campGoal == EReasonForGoingToCamp::RGC_Capturing)
 	{
 		if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("GoingForWin") && !OwnerComp.GetBlackboardComponent()->GetValueAsBool("FoundNearbyEnemyCamp"))
@@ -26,9 +27,11 @@ EBTNodeResult::Type UBTTask_MoveToCamp::ExecuteTask(UBehaviorTreeComponent& Owne
 			return EBTNodeResult::Failed;
 		}
 
-		targetCamp = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("CampTarget"));
 		if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("ReachedCamp"))
 			return EBTNodeResult::Succeeded;
+
+		targetCamp = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("CampTarget"));
+		
 	}
 	else if (campGoal == EReasonForGoingToCamp::RGC_Recruiting)
 	{
@@ -45,10 +48,14 @@ EBTNodeResult::Type UBTTask_MoveToCamp::ExecuteTask(UBehaviorTreeComponent& Owne
 		targetCamp = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("DefendCampTarget"));
 	}
 
+	else if (campGoal == EReasonForGoingToCamp::RGC_DefendingBase)
+	{
+		baseStructure = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("BaseStructure"));
+	}
 	if (hero != nullptr)
 	{
 		heroStats = hero->GetHeroStats();
-		sacrificeCreepAbility = hero->GetAbility(3);
+		sacrificeCreepAbility = hero->GetAbility(4);
 		return EBTNodeResult::InProgress;	
 	}
 
@@ -66,6 +73,19 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 	heroStats->UpdateStats();
 	
+
+	if ((campGoal!= EReasonForGoingToCamp::RGC_DefendingBase && campGoal != EReasonForGoingToCamp::RGC_Recruiting)  && hero->CheckIfTowerIsBeingAttacked())
+	{
+		OwnerComp.GetBlackboardComponent()->SetValueAsBool("BaseBeingAttacked", true);
+		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+
+	}
+	else
+	{
+		OwnerComp.GetBlackboardComponent()->SetValueAsBool("BaseBeingAttacked", false);
+
+	}
+
 	if (heroStats->GetHealthPercent() <= 0.5f && heroStats->GetArmySize() > 0 && sacrificeCreepAbility != nullptr && sacrificeCreepAbility->CanUse() ) 
 	{
 		UE_LOG(LogTemp, Error, TEXT("AI Sacrificed Creep"));
@@ -210,6 +230,24 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 			}
 			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		}
+
+	}
+
+	else if (campGoal == EReasonForGoingToCamp::RGC_DefendingBase)
+	{
+		if (hero->GetDistanceTo(baseStructure) <= 500)
+		{
+			UE_LOG(LogTemp, Display, TEXT("AI Reached Defending Base Structure"));
+			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		}
+
+		if (hero->CheckForNearbyEnemyHero() || hero->CheckForNearbyCreepsInArmy() || hero->CheckForNearbyOnwedCreepCamps())
+		{
+			//UE_LOG(LogTemp, Display, TEXT("AI SENSES ENEMY WHILE HEADING TO RECURIT CAMP"));
+			//heroAI->ResetAITreeTaskStatus();
+			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		}
+
 
 	}
 

@@ -43,8 +43,26 @@ ATowerBase::ATowerBase()
 }
 
 
+void ATowerBase::BeginPlay() 
+{
+	Super::BeginPlay();
+	TArray<AActor*> herosInGame;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), heroClass, herosInGame);
+
+	if (herosInGame.Num() == 1)
+	{
+		//UE_LOG(LogTemp, Error, TEXT("Tower Found Team Hero."));
+		teamHero = Cast<AHeroBase>(herosInGame[0]);
+	}
+
+
+
+}
+
+
 void ATowerBase::TriggerExit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	//Super::TriggerExit(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
 	if (enemyUnits.Contains(OtherActor))
 		enemyUnits.Remove(OtherActor);
 	
@@ -52,12 +70,17 @@ void ATowerBase::TriggerExit(UPrimitiveComponent* OverlappedComponent, AActor* O
 
 void ATowerBase::TriggerEnter(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
+	//Super::TriggerEnter(ThisComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	if (OtherActor->IsA(ACharacter::StaticClass()))
 	{
+		
 		if (ActorHasTag("Diesel") && !OtherActor->ActorHasTag("Diesel"))
 			enemyUnits.Add(OtherActor);
 		else if (ActorHasTag("Cyber") && !OtherActor->ActorHasTag("Cyber"))
+		{
 			enemyUnits.Add(OtherActor);
+			UE_LOG(LogTemp, Log, TEXT("TOWER FOUND ENEMY!"));
+		}
 	}
 }
 
@@ -101,4 +124,18 @@ void ATowerBase::RemoveFromTargetList(AActor* enemy)
 	{
 		enemyUnits.Remove(enemy);
 	}
+}
+bool ATowerBase::CheckForEnemyHero()
+{
+	bool foundHero = false;
+
+	for (int i = 0; i < enemyUnits.Num(); i++)
+	{
+		if (enemyUnits[i]->IsA(AHeroBase::StaticClass()))
+		{
+			foundHero = true;
+		}
+	}
+
+	return foundHero;
 }

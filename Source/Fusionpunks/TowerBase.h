@@ -14,6 +14,8 @@ class FUSIONPUNKS_API ATowerBase : public AActor
 	
 public:	
 	ATowerBase();
+
+	virtual void BeginPlay() override;
 	
 	virtual float TakeDamage
 	(
@@ -31,6 +33,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = Damage)
 		float damage;
+
+
+	bool CheckForEnemyHero();
+
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = Stats)
 		int XPKillReward;
@@ -58,7 +64,7 @@ protected:
 		UStaticMeshComponent* visualTower;
 
 	UFUNCTION()
-		void TriggerEnter(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
+		virtual void TriggerEnter(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
 	UFUNCTION()
 		virtual void TriggerExit(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
@@ -83,9 +89,18 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Damage)
 		float damageEverySeconds;
 
+	UPROPERTY(EditDefaultsOnly, Category = HeroClass)
+		TSubclassOf<class AHeroBase> heroClass;
+
+	class AHeroBase* teamHero;
 
 
 	bool bIsDealingDMG = false;
+
+	
+
+
+
 	//APlayerController* playerCam;
 
 	//AActor* playerChar;

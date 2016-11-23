@@ -52,7 +52,7 @@ void UBTTask_ApproachBase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("IN RANGE OF ENEMY HERO"));
+			UE_LOG(LogTemp, Error, TEXT("IN RANGE OF ENEMY BASE"));
 			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		}
 	}

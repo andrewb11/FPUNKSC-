@@ -12,10 +12,6 @@ EBTNodeResult::Type UBTTask_DetermineCampSafety::ExecuteTask(UBehaviorTreeCompon
 {
 
 	Super::ExecuteTask(OwnerComp, NodeMemory);
-
-
-	
-
 	AHeroBase* hero = Cast<AHeroBase>(OwnerComp.GetAIOwner()->GetPawn());
 	AHeroAIController* heroAI = Cast<AHeroAIController>(OwnerComp.GetAIOwner());
 	ACreepCamp* targetCamp = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("CampTarget"));
@@ -26,6 +22,12 @@ EBTNodeResult::Type UBTTask_DetermineCampSafety::ExecuteTask(UBehaviorTreeCompon
 	}
 	if (hero != nullptr && targetCamp!= nullptr)
 	{
+
+		if (heroAI->GetNumOwnedCamps() == 0)
+		{
+			return EBTNodeResult::Succeeded;
+		}
+
 
 		if (hero->ActorHasTag("Cyber"))
 			enemyHero = targetCamp->GetDieselHero();

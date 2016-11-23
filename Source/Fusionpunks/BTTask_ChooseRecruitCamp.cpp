@@ -15,7 +15,11 @@ EBTNodeResult::Type UBTTask_ChooseRecruitCamp::ExecuteTask(UBehaviorTreeComponen
 	AHeroBase* hero = Cast<AHeroBase>(OwnerComp.GetAIOwner()->GetPawn());
 	nextCaptureObjective = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("CampTarget"));
 
-	
+	if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("BaseBeingAttacked") && currSituation != ESituation::SE_NearbyCamp)
+	{
+		UE_LOG(LogTemp, Error, TEXT("Found Base Being Attacked...wont recruit"));
+		return EBTNodeResult::Failed;
+	}
 
 	if (currSituation == ESituation::SE_CapturingUnsafeCamp || (currSituation == ESituation::SE_EngagingEnemyHero && OwnerComp.GetBlackboardComponent()->GetValueAsBool("ShouldRecruit")))
 	{
@@ -47,7 +51,11 @@ EBTNodeResult::Type UBTTask_ChooseRecruitCamp::ExecuteTask(UBehaviorTreeComponen
 
 	else if (currSituation == ESituation::SE_NearbyCamp)
 	{
-
+		if (hero->HasJustRecruited())
+		{
+			UE_LOG(LogTemp, Error, TEXT("Already Just Recruited"));
+			return EBTNodeResult::Failed;
+		}
 
 		if (hero->CheckForNearbyOnwedCreepCamps())
 		{

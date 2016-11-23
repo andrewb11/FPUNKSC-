@@ -18,7 +18,7 @@ EBTNodeResult::Type UBTTask_Escape::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 	{		
 		healingWell = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("HealingWell"));
 		bNotifyTick = true;
-		sacrificeCreepAbility = hero->GetAbility(3);
+		sacrificeCreepAbility = hero->GetAbility(4);
 		return EBTNodeResult::InProgress;
 	}
 		return EBTNodeResult::Failed;
@@ -35,6 +35,15 @@ void UBTTask_Escape::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 			sacrificeCreepAbility->Use();
 		}
 
+
+
+		if (hero->CheckForNearbyOnwedCreepCamps()) 
+		{
+			
+			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		}
+
+
 		if (hero->CheckForNearbyEnemyHero())
 		{
 			enemyHero = hero->GetNearbyEnemyHero();
@@ -46,6 +55,8 @@ void UBTTask_Escape::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 			}
 		}
+
+		
 
 
 		if (!hero->InsideHealingWell())

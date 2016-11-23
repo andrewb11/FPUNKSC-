@@ -58,7 +58,7 @@ AHeroBase::AHeroBase()
 	//defaults unless set in blueprint
 	currentLevel = 1;
 	basicAttackDamage = 10.0f;
-	respawnTime = 1.0f;
+	respawnTime = 10.0f;
 
 	agroRadius = 800.0f;
 
@@ -149,11 +149,18 @@ void AHeroBase::BeginPlay()
 
 	FActorSpawnParameters spawnParams;
 	spawnParams.Owner = this;
-	//Abilities[1] = GetWorld()->SpawnActor<AAbilityBase>(AbilitiesClass[1], GetActorLocation(), FRotator::ZeroRotator, spawnParams);
-	//Abilities[2] = GetWorld()->SpawnActor<AAbilityBase>(AbilitiesClass[2], GetActorLocation(), FRotator::ZeroRotator, spawnParams);
+	spawnParams.Instigator = this;
+	
+	if (AbilitiesClass[0] != nullptr)
+		Abilities[0] = GetWorld()->SpawnActor<AAbilityBase>(AbilitiesClass[0], GetActorLocation(), FRotator::ZeroRotator, spawnParams);
+	if (AbilitiesClass[1] != nullptr)
+		Abilities[1] = GetWorld()->SpawnActor<AAbilityBase>(AbilitiesClass[1], GetActorLocation(), FRotator::ZeroRotator, spawnParams);
+	if (AbilitiesClass[2] != nullptr)
+		Abilities[2] = GetWorld()->SpawnActor<AAbilityBase>(AbilitiesClass[2], GetActorLocation(), FRotator::ZeroRotator, spawnParams);
 	if (AbilitiesClass[3] != nullptr)
 		Abilities[3] = GetWorld()->SpawnActor<AAbilityBase>(AbilitiesClass[3], GetActorLocation(), FRotator::ZeroRotator, spawnParams);
-	//Abilities[4] = GetWorld()->SpawnActor<AAbilityBase>(AbilitiesClass[4], GetActorLocation(), FRotator::ZeroRotator, spawnParams);
+	if (AbilitiesClass[4] != nullptr)
+		Abilities[4] = GetWorld()->SpawnActor<AAbilityBase>(AbilitiesClass[4], GetActorLocation(), FRotator::ZeroRotator, spawnParams);
 
 
 	if (ActorHasTag("AI"))
@@ -167,7 +174,21 @@ void AHeroBase::BeginPlay()
 			enemyBase = Cast<ABase>(bases[0]);
 			heroAI->LinkEnemyBaseProps(enemyBase);
 		}
+
+
+		TArray<AActor*> towersInGame;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), towerClass, towersInGame);
+		for (int i = 0; i < towersInGame.Num(); i++)
+		{
+			teamTowers.Add(Cast<ATowerBase>(towersInGame[i]));
+
+		}
+		UE_LOG(LogTemp, Error, TEXT("Found %d towers"), teamTowers.Num());
+
 	}
+
+
+
 
 }
 
@@ -199,7 +220,7 @@ void AHeroBase::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 {
 	Super::SetupPlayerInputComponent(InputComponent);
 	// Set up gameplay key bindings
-	check(InputComponent);
+	
 
 	//InputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	//InputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
@@ -314,12 +335,12 @@ ACreep* AHeroBase::GetClosestEnemyCreep()
 		for (int32 i = 0; i < Results.Num(); i++)
 		{
 			ACreep* currCreep = Cast<ACreep>(Results[i].GetActor());
-			if (team.Compare("Diesel") == 0 && !Results[i].GetActor()->ActorHasTag("Diesel") && !currCreep->bBelongsToCamp)
+			if (team.Compare("Diesel") == 0 && !Results[i].GetActor()->ActorHasTag("Diesel"))
 			{
 				enemyCreeps.Add(currCreep);
 			}
 
-			else if (team.Compare("Cyber") == 0 && !Results[i].GetActor()->ActorHasTag("Cyber") && !currCreep->bBelongsToCamp)
+			else if (team.Compare("Cyber") == 0 && !Results[i].GetActor()->ActorHasTag("Cyber"))
 			{
 				enemyCreeps.Add(currCreep);
 			}
@@ -531,14 +552,14 @@ bool AHeroBase::CheckForNearbyInteractions()
 
 				ACreepCamp* currCamp = Cast<ACreepCamp>(Results[i].GetActor());
 				if (team.Compare("Diesel") == 0 && currCamp->GetCampType() == ECampType::CT_Diesel && /*!currCamp->HasBeenRecruitedFrom() && */
-					currCamp->GetNumOfCreepsAtCamp() - 1 > 0 && GetArmySize() < maxArmySize)
+					currCamp->GetNumOfCreepsAtCamp() - 1 > 0 && GetArmySize() < maxArmySize && !bJustRecruited)
 				{
 					nearbyOwnedCreepCamps.Add(currCamp);
 					UE_LOG(LogTemp, Display, TEXT("FOUND NEARBY OWNED CAMP"));
 				}
 
 				else if (team.Compare("Cyber") == 0 && currCamp->GetCampType() == ECampType::CT_Cyber &&  /*!currCamp->HasBeenRecruitedFrom() && */
-					currCamp->GetNumOfCreepsAtCamp() - 1 > 0 && GetArmySize() < maxArmySize)
+					currCamp->GetNumOfCreepsAtCamp() - 1 > 0 && GetArmySize() < maxArmySize && !bJustRecruited)
 				{
 					nearbyOwnedCreepCamps.Add(currCamp);
 					UE_LOG(LogTemp, Display, TEXT("FOUND NEARBY OWNED CAMP"));
@@ -615,12 +636,14 @@ bool AHeroBase::CheckForNearbyOnwedCreepCamps()
 		{
 	
 			ACreepCamp* currCamp = Cast<ACreepCamp>(Results[i].GetActor());
-			if (team.Compare("Diesel") == 0 && currCamp->GetCampType() == ECampType::CT_Diesel && currCamp->GetNumOfCreepsAtCamp() - 1> 0)
+			if (team.Compare("Diesel") == 0 && currCamp->GetCampType() == ECampType::CT_Diesel && currCamp->GetNumOfCreepsAtCamp() - 1> 0
+				&& !bJustRecruited)
 			{
 				nearbyOwnedCreepCamps.Add(currCamp);
 			}
 
-			else if (team.Compare("Cyber") == 0 && currCamp->GetCampType() == ECampType::CT_Cyber && currCamp->GetNumOfCreepsAtCamp() - 1 > 0)
+			else if (team.Compare("Cyber") == 0 && currCamp->GetCampType() == ECampType::CT_Cyber && currCamp->GetNumOfCreepsAtCamp() - 1 > 0
+				&& !bJustRecruited)
 			{
 				nearbyOwnedCreepCamps.Add(currCamp);
 			}
@@ -817,7 +840,15 @@ float AHeroBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dama
 		compassDecalComponent->MarkRenderStateDirty();
 
 		currentHealth = 0;
-		GetController()->DisableInput(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+
+		APlayerController* playerCont = Cast<APlayerController>(GetController());
+		if (playerCont != nullptr)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Found PLayer Controller"));
+			DisableInput(playerCont);
+		}
+		
+
 		GetMesh()->SetVisibility(false);
 		//SetActorEnableCollision(false);
 		respawnEffect->StartTimer(respawnTime, this);
@@ -1210,4 +1241,37 @@ void AHeroBase::HideCompassDecal()
 void AHeroBase::Slow(float Percentage)
 {
 	GetCharacterMovement()->MaxWalkSpeed *= Percentage;
+}
+
+void AHeroBase::AIRecruited()
+{
+	if (!bJustRecruited)
+	{
+		bJustRecruited = true;
+		GetWorld()->GetTimerManager().SetTimer(recruitTimerHandle, this, &AHeroBase::TriggerRecruitStatusChange, 5.0f, false);
+	}
+}
+
+void AHeroBase::TriggerRecruitStatusChange()
+{
+	bJustRecruited = false;
+}
+
+bool AHeroBase::CheckIfTowerIsBeingAttacked()
+{
+
+	if (teamTowers.Num() > 0)
+	{
+		for (int i = 0; i < teamTowers.Num(); i++)
+		{
+			if (teamTowers[i]->CheckForEnemyHero())
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	return false;
 }

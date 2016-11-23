@@ -2,6 +2,7 @@
 
 #include "Fusionpunks.h"
 #include "HeroAIController.h"
+#include "AbilityBase.h"
 #include "HeroBase.h"
 #include "Creep.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -18,6 +19,10 @@ EBTNodeResult::Type UBTTask_MoveInRangeOfEnemy::ExecuteTask(UBehaviorTreeCompone
 	{
 		heroStats = hero->GetHeroStats();
 		target = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("AttackTarget"));
+		ability0 = hero->GetAbility(0);
+		ability1 = hero->GetAbility(1);
+		ability2 = hero->GetAbility(2);
+		ability3 = hero->GetAbility(3);
 		if (target != nullptr)
 		{
 			if (hero->GetDistanceTo(target) >= 300)
@@ -34,9 +39,7 @@ EBTNodeResult::Type UBTTask_MoveInRangeOfEnemy::ExecuteTask(UBehaviorTreeCompone
 	{
 		UE_LOG(LogTemp, Error, TEXT("Cant Find Hero"));
 		return EBTNodeResult::Failed;
-	}
-
-	
+	}	
 
 }
 void UBTTask_MoveInRangeOfEnemy::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
@@ -45,6 +48,19 @@ void UBTTask_MoveInRangeOfEnemy::TickTask(UBehaviorTreeComponent& OwnerComp, uin
 
 	if(target != NULL)
 	{
+		if (hero->ActorHasTag("Cyber"))
+		{
+			if (ability1 != nullptr && ability1->CanUse())
+			{
+				ability1->Use();
+			}
+
+			else if (ability2 != nullptr &&  ability2->CanUse())
+			{
+				ability2->Use();
+			}
+		}
+
 		if (hero->GetDistanceTo(target) < 300)
 		{
 			UE_LOG(LogTemp, Error, TEXT("TOO CLOSE TO TARGET"));
@@ -64,12 +80,10 @@ void UBTTask_MoveInRangeOfEnemy::TickTask(UBehaviorTreeComponent& OwnerComp, uin
 			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		}
 
-
-
-
-
-
-
+		if (target->IsActorBeingDestroyed())
+		{
+			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+		}
 	}
 		
 	else 
@@ -77,10 +91,7 @@ void UBTTask_MoveInRangeOfEnemy::TickTask(UBehaviorTreeComponent& OwnerComp, uin
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 	}
 
-	if (target->IsActorBeingDestroyed())
-	{
-		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
-	}
+	
 
 }
 

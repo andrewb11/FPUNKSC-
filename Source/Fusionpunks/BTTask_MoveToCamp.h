@@ -14,7 +14,8 @@ enum class EReasonForGoingToCamp : uint8
 	RGC_Capturing UMETA(DisplayName = "CapturingCamp"),
 	RGC_Recruiting UMETA(DisplayName = "RecruitingCamp"),
 	RGC_DefendingCamp UMETA(DisplayName = "DefendingCamp"),
-	RGC_GoingForWin	UMETA(DisplayName ="GoingForWin")
+	RGC_GoingForWin	UMETA(DisplayName ="GoingForWin"), 
+	RGC_DefendingBase UMETA(DisplayName ="DefendingBase" )
 
 };
 
@@ -39,4 +40,6 @@ protected:
 		float healthPercentageAbort = 0.2f;
 	UPROPERTY(EditAnywhere)
 		int32 creepDifferenceAllowed = 5;
+
+	AActor* baseStructure;
 };

@@ -161,12 +161,12 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 						else if (hero->ActorHasTag("Diesel"))
 						{
 
-							if (attackTarget->GetArmySize() >= 1 && ability2 != nullptr && ability2->CanUse())
+							if (hero->GetArmySize() >= 1 && ability2 != nullptr && ability2->CanUse())
 							{
-								ability2->CanUse();
+								ability2->Use();
 
 							}
-							else if (ability0 != nullptr && ability0->CanUse())
+							else if (ability0 != nullptr && ability0->CanUse() && hero->GetDistanceTo(attackTarget) >= 575.0f)
 							{
 								ability0->Use();
 							}
@@ -231,12 +231,8 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 						else if (hero->ActorHasTag("Diesel"))
 						{
 
-							if (attackTarget->GetArmySize() >= 1 && ability2 != nullptr && ability2->CanUse())
-							{
-								ability2->CanUse();
-
-							}
-							else if (ability0 != nullptr && ability0->CanUse())
+							
+							 if (ability0 != nullptr && ability0->CanUse() && hero->GetDistanceTo(enemyCreep) >= 575.0f)
 							{
 								ability0->Use();
 							}
@@ -327,12 +323,12 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 					else if (hero->ActorHasTag("Diesel"))
 					{
 
-						if (attackTarget->GetArmySize() >= 1 && ability2 != nullptr && ability2->CanUse())
+						if (hero->GetArmySize() >= 1 && ability2 != nullptr && ability2->CanUse())
 						{
-							ability2->CanUse();
+							ability2->Use();
 
 						}
-						else if (ability0 != nullptr && ability0->CanUse())
+						else if (ability0 != nullptr && ability0->CanUse() && hero->GetDistanceTo(attackTarget) >= 575.0f)
 						{
 							ability0->Use();
 						}
@@ -379,12 +375,8 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 					else if (hero->ActorHasTag("Diesel"))
 					{
 
-						if (attackTarget->GetArmySize() >= 1 && ability2 != nullptr && ability2->CanUse())
-						{
-							ability2->CanUse();
-
-						}
-						else if (ability0 != nullptr && ability0->CanUse())
+					
+						 if (ability0 != nullptr && ability0->CanUse() && hero->GetDistanceTo(enemyCreep) >= 575.0f)
 						{
 							ability0->Use();
 						}

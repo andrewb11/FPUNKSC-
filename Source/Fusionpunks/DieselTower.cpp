@@ -57,14 +57,8 @@ void ADieselTower::Tick( float DeltaTime )
 			//UE_LOG(LogTemp, Log, TEXT("Attacking Player!"));
 			if (!bIsDealingDMG)
 			{
-				if (towerDMG->IsPaused())
-				{
-					towerDMG->UnPauseTimer(enemyUnits[0]);
-				}
-				else
-				{
-					towerDMG->StartTimer(damageEverySeconds, enemyUnits[0]);
-				}
+				
+				towerDMG->StartTimer(damageEverySeconds, enemyUnits[0]);
 				bIsDealingDMG = true;
 			}
 		}
@@ -73,14 +67,14 @@ void ADieselTower::Tick( float DeltaTime )
 	{
 		if (bIsDealingDMG)
 		{
-			towerDMG->PauseTimer();
+			towerDMG->StopTimer();
 			bIsDealingDMG = false;
 		}
 	}
 
 }
 
-AProjectile* ADieselTower::SpawnProjectile()
+void ADieselTower::SpawnProjectiles()
 {
 	if (whatToSpawn != NULL)
 	{
@@ -89,21 +83,16 @@ AProjectile* ADieselTower::SpawnProjectile()
 		{
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
-			SpawnParams.Instigator = Instigator;
-
 			FVector spawnLocation = GetActorLocation();
 			spawnLocation.Z += 200;
-
-
 			currProjectile = world->SpawnActor<AProjectile>(whatToSpawn, spawnLocation, FRotator(0, 0, 0), SpawnParams);
-			bHasSpawned = true;
-			spawnTimer = 0;
+			currProjectile->SetTarget(enemyUnits[0]);
+			currProjectile->SetDamage(damage / 4.0f);
+		
 
-			return currProjectile;
 		}
-		return NULL;
-	}
 
-	return NULL;
+
+	}
 }
 

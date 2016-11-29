@@ -61,6 +61,14 @@ void UBTTask_MoveInRangeOfEnemy::TickTask(UBehaviorTreeComponent& OwnerComp, uin
 			}
 		}
 
+		else if (hero->ActorHasTag("Diesel"))
+		{
+			if (ability0 != nullptr && ability0->CanUse())
+			{
+				ability0->Use();
+			}
+		}
+
 		if (hero->GetDistanceTo(target) < 300)
 		{
 			UE_LOG(LogTemp, Error, TEXT("TOO CLOSE TO TARGET"));

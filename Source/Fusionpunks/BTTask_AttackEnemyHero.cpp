@@ -34,7 +34,7 @@ EBTNodeResult::Type UBTTask_AttackEnemyHero::ExecuteTask(UBehaviorTreeComponent&
 		enemyTower = Cast<ATowerBase>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("AttackTarget"));
 		targetType = ETargetType::TT_Tower;
 	}
-	OwnerComp.GetAIOwner()->StopMovement();
+	//OwnerComp.GetAIOwner()->StopMovement();
 	isAttacking = false;
 	if (hero != nullptr)
 	{
@@ -68,7 +68,7 @@ void UBTTask_AttackEnemyHero::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 			UE_LOG(LogTemp, Error, TEXT("Starting Attack Hero Timer!"));
 		}
 
-		if (isAttacking && !hammerStormClass->bIsSpinning)
+		if (isAttacking && ((hero->ActorHasTag("Diesel") && !hammerStormClass->bIsSpinning) || hero->ActorHasTag("Cyber")))
 		{
 			FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(hero->GetActorLocation(), enemyHero->GetActorLocation());
 			lookAtTargetRotation.Pitch = 0;
@@ -100,7 +100,7 @@ void UBTTask_AttackEnemyHero::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 			UE_LOG(LogTemp, Error, TEXT("Starting Attack Creep Timer!"));
 		}
 
-		if (isAttacking && enemyCreep != nullptr)
+		if (isAttacking && enemyCreep != nullptr && ((hero->ActorHasTag("Diesel") && !hammerStormClass->bIsSpinning) || hero->ActorHasTag("Cyber")) )
 		{
 			FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(hero->GetActorLocation(), enemyCreep->GetActorLocation());
 			lookAtTargetRotation.Pitch = 0;
@@ -130,7 +130,7 @@ void UBTTask_AttackEnemyHero::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 			UE_LOG(LogTemp, Error, TEXT("Starting Attack Tower Timer!"));
 		}
 
-		if (isAttacking && enemyTower != nullptr)
+		if (isAttacking && enemyTower != nullptr && ((hero->ActorHasTag("Diesel") && !hammerStormClass->bIsSpinning) || hero->ActorHasTag("Cyber")))
 		{
 			FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(hero->GetActorLocation(), enemyTower->GetActorLocation());
 			lookAtTargetRotation.Pitch = 0;

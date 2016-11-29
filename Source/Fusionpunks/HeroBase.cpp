@@ -28,7 +28,7 @@ AHeroBase::AHeroBase()
 	PrimaryActorTick.bCanEverTick = true;
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-
+	
 	// set our turn rates for input
 	BaseTurnRate = 45.0f;
 	BaseLookUpRate = 45.f;
@@ -129,7 +129,7 @@ AHeroBase::AHeroBase()
 void AHeroBase::BeginPlay()
 {
 	Super::BeginPlay();
-
+	
 	currentHealth = maxHealth;
 	DefaultTurnRate = BaseTurnRate;
 

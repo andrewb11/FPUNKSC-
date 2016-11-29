@@ -48,7 +48,7 @@ EBTNodeResult::Type UBTTask_AttackCreeps::ExecuteTask(UBehaviorTreeComponent& Ow
 void UBTTask_AttackCreeps::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
-	if (target != nullptr && !hammerStormClass->bIsSpinning)
+	if (target != nullptr && ((hero->ActorHasTag("Diesel") && !hammerStormClass->bIsSpinning) || hero->ActorHasTag("Cyber")))
 	{
 		FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(hero->GetActorLocation(), target->GetActorLocation());
 		lookAtTargetRotation.Pitch = 0;

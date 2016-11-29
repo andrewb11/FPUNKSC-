@@ -15,6 +15,8 @@ class FUSIONPUNKS_API ATowerBase : public AActor
 public:	
 	ATowerBase();
 
+	virtual void SpawnProjectiles() { check(0 && "You must override this"); }
+
 	virtual void BeginPlay() override;
 	
 	virtual float TakeDamage

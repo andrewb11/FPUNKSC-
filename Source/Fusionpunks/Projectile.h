@@ -42,10 +42,13 @@ protected:
 
 	class ACreep* enemyCreep;
 	class AHeroBase*  enemyHero;
-	class ADieselTower* owningTower;
+	class ATowerBase* owningTower;
 	float damage;
 	float deathTimer = 0;
 
+
+	UPROPERTY(EditDefaultsOnly)
+		class UParticleSystemComponent* projectileParticle;
 
 	UPROPERTY(EditAnywhere)
 		UShapeComponent* sphereShape;

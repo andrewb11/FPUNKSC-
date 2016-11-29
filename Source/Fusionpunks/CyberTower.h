@@ -17,6 +17,7 @@ public:
 
 	ACyberTower();
 
+	void SpawnProjectiles() override;
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	
@@ -32,11 +33,20 @@ private:
 		class UStaticMeshComponent* turretCone;
 	UPROPERTY(EditDefaultsOnly)
 		class UStaticMeshComponent* turretGun;
-	UPROPERTY(EditDefaultsOnly)
-		class UParticleSystemComponent* beam;
+	//UPROPERTY(EditDefaultsOnly)
+		//class UParticleSystemComponent* beam;
+	UPROPERTY(EditDefaultsOnly, Category = ShootPositions)
+		USceneComponent* shootPos1;
+	UPROPERTY(EditDefaultsOnly, Category = ShootPositions)
+		USceneComponent* shootPos2;
+	UPROPERTY(EditDefaultsOnly, Category = ShootPositions)
+		USceneComponent* shootPos3;
+	UPROPERTY(EditDefaultsOnly, Category = ShootPositions)
+		USceneComponent* shootPos4;
+	UPROPERTY(EditDefaultsOnly, Category = Projectile)
+		TSubclassOf <class AProjectile> projectileClass;
 
-	
-	class ALightningTowerDamage* towerDMG;
+	class AProjectileTowerDamage* towerDMG;
 	FVector sourceLocation;
 
 protected:

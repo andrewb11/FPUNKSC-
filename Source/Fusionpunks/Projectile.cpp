@@ -3,7 +3,9 @@
 #include "Fusionpunks.h"
 #include "HeroBase.h"
 #include "Creep.h"
+#include "CyberTower.h"
 #include "DieselTower.h"
+#include "Classes/Particles/ParticleSystemComponent.h"
 #include "Projectile.h"
 
 
@@ -17,6 +19,8 @@ AProjectile::AProjectile()
 	RootComponent = sphereShape;
 	sphereDisplay = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Sphere"));
 	sphereDisplay->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	projectileParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleSystem"));
+	projectileParticle->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	sphereShape->bGenerateOverlapEvents = true;
 	sphereShape->OnComponentBeginOverlap.AddDynamic(this, &AProjectile::TriggerEnter);
 	
@@ -28,8 +32,8 @@ AProjectile::AProjectile()
 void AProjectile::BeginPlay()
 {
 	Super::BeginPlay();
-	owningTower = Cast<ADieselTower>(GetOwner());
-	damage = owningTower->damage;
+	owningTower = Cast<ATowerBase>(GetOwner());
+	//damage = owningTower->damage;
 	
 }
 
@@ -56,14 +60,14 @@ void AProjectile::Tick( float DeltaTime )
 			if (!enemyHero->bIsRespawning || enemyHero->GetPlayerHealthAsDecimal() > 0 )
 			{
 				FVector direction = (enemyHero->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-				FVector newPos = GetActorLocation() + (direction * DeltaTime * 1000);
+				FVector newPos = GetActorLocation() + (direction * DeltaTime * 2000);
 				SetActorLocation(newPos);
 			}
 
 			else 
 			{
 				Destroy();
-				owningTower->PauseAttackTimer();
+				//owningTower->PauseAttackTimer();
 				owningTower->RemoveFromTargetList(enemyHero);
 				owningTower->SetIsDealingDamage(false);
 				
@@ -76,7 +80,7 @@ void AProjectile::Tick( float DeltaTime )
 		{
 
 			Destroy();
-			owningTower->PauseAttackTimer();
+			//owningTower->PauseAttackTimer();
 			owningTower->RemoveFromTargetList(enemyHero);
 			owningTower->SetIsDealingDamage(false);
 		}
@@ -91,14 +95,14 @@ void AProjectile::Tick( float DeltaTime )
 			if (enemyCreep->GetHealthAsDecimal() > 0 || !enemyCreep->GetBIsDead())
 			{
 				FVector direction = (enemyCreep->GetActorLocation() - GetActorLocation()).GetSafeNormal();
-				FVector newPos = GetActorLocation() + (direction * DeltaTime * 1000);
+				FVector newPos = GetActorLocation() + (direction * DeltaTime * 2000);
 				SetActorLocation(newPos);
 			}
 
 			else
 			{
 				Destroy();
-				owningTower->PauseAttackTimer();
+				//owningTower->PauseAttackTimer();
 				owningTower->RemoveFromTargetList(enemyCreep);
 				owningTower->SetIsDealingDamage(false);
 			}
@@ -109,7 +113,7 @@ void AProjectile::Tick( float DeltaTime )
 		else
 		{
 			Destroy();
-			owningTower->PauseAttackTimer();
+			//owningTower->PauseAttackTimer();
 			owningTower->RemoveFromTargetList(enemyCreep);
 			owningTower->SetIsDealingDamage(false);
 		}
@@ -125,6 +129,7 @@ void AProjectile::SetTarget(class AActor* OtherActor)
 
 	enemyCreep = nullptr;
 	enemyHero = nullptr;
+	
 	if (OtherActor == nullptr || OtherActor->IsActorBeingDestroyed()) {
 		Destroy();
 	}
@@ -140,7 +145,7 @@ void AProjectile::SetTarget(class AActor* OtherActor)
 		enemyType = ETypeOfEnemy::TE_Creep;
 	}
 	
-	
+	target = OtherActor->GetActorLocation();
 	
 	//enemyPlayer = OtherActor;
 
@@ -152,13 +157,23 @@ void AProjectile::TriggerEnter(class UPrimitiveComponent* ThisComp, class AActor
 {
 	if (OtherActor->IsA(ACharacter::StaticClass()))
 	{
-		FDamageEvent DamageEvent;
-		if (damage > 0) 
+		if ((owningTower->IsA(ACyberTower::StaticClass()) && OtherActor->ActorHasTag("Diesel")) ||
+			(owningTower->IsA(ADieselTower::StaticClass()) && OtherActor->ActorHasTag("Cyber")))
 		{
-			float damageTaken = OtherActor->TakeDamage(damage, DamageEvent, NULL, owningTower);
-			Destroy();
+			FDamageEvent DamageEvent;
+			if (damage > 0)
+			{
+				float damageTaken = OtherActor->TakeDamage(damage, DamageEvent, NULL, owningTower);
+				Destroy();
+			}
 		}
 		
+	}
+
+
+	else if (!OtherActor->IsA(ATowerBase::StaticClass()) && !OtherActor->IsA(AProjectile::StaticClass()))
+	{
+		Destroy();
 	}
 }
 

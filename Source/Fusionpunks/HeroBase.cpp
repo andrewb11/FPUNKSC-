@@ -511,7 +511,7 @@ bool AHeroBase::CheckForNearbyEnemyHero()
 		GetActorLocation(),
 		FQuat(),
 		obejctQP,
-		FCollisionShape::MakeSphere(1000),
+		FCollisionShape::MakeSphere(2000),
 		QueryParameters);
 		
 	nearbyEnemyHero = nullptr;
@@ -566,16 +566,25 @@ bool AHeroBase::CheckForNearbyEnemyTowers()
 
 bool AHeroBase::CheckForNearbyInteractions()
 {
-	FCollisionObjectQueryParams obejctQP;
+	FCollisionQueryParams QueryParameters;
+	QueryParameters.AddIgnoredActor(this);
+	FCollisionObjectQueryParams obejctQP2;
+	obejctQP2.AddObjectTypesToQuery(Hero);
+	TArray<FOverlapResult> Results2;
+	GetWorld()->OverlapMultiByObjectType(Results2,
+		GetActorLocation(),
+		FQuat(),
+		obejctQP2,
+		FCollisionShape::MakeSphere(2000),
+		QueryParameters);
 
-	obejctQP.AddObjectTypesToQuery(Hero);
+	FCollisionObjectQueryParams obejctQP;
 	obejctQP.AddObjectTypesToQuery(CreepCampTrigger);
 	obejctQP.AddObjectTypesToQuery(Creeps);
 	obejctQP.AddObjectTypesToQuery(DamageableStructures);
 	//Overlap multi by channel as a sphere (for pick ups?)
-	FCollisionQueryParams QueryParameters;
-	QueryParameters.AddIgnoredActor(this);
-	QueryParameters.OwnerTag = TEXT("Player");
+	
+	//QueryParameters.OwnerTag = TEXT("Player");
 
 	TArray<FOverlapResult> Results;
 	GetWorld()->OverlapMultiByObjectType(Results,
@@ -590,17 +599,21 @@ bool AHeroBase::CheckForNearbyInteractions()
 	nearbyEnemyHero = nullptr;
 	nearbyEnemyCamp = nullptr;
 	nearbyEnemyTower = nullptr;
+	
+	if (Results2.Num()  == 1)
+	{
+		if (Results2[0].GetActor()->IsA(AHeroBase::StaticClass()))
+		{
+			nearbyEnemyHero = Cast<AHeroBase>(Results2[0].GetActor());
+		}
+		
+	}
+
 	if (Results.Num() > 0)
 	{
 		for (int32 i = 0; i < Results.Num(); i++)
-		{
-
-			if (Results[i].GetActor()->IsA(AHeroBase::StaticClass()))
-			{
-				nearbyEnemyHero = Cast<AHeroBase>(Results[i].GetActor());
-			}
-					
-			else if (Results[i].GetActor()->IsA(ACreepCamp::StaticClass()))
+		{			
+			 if (Results[i].GetActor()->IsA(ACreepCamp::StaticClass()))
 			{
 
 				ACreepCamp* currCamp = Cast<ACreepCamp>(Results[i].GetActor());
@@ -1396,4 +1409,7 @@ bool AHeroBase::CheckIfTowerIsBeingAttacked()
 
 	return false;
 }
+
+
+
 

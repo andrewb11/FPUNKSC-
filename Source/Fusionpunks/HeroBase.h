@@ -256,6 +256,7 @@ public:
 	ACreep* GetClosestEnemyCreep();
 	bool CheckForNearbyCreepsInArmy();
 	bool CheckForNearbyEnemyTowers();
+	bool FarEnemyHeroCheck();
 	void AIRecruited();
 	bool bJustRecruited = false;
 	FORCEINLINE TArray<class ACreep*> GetNearbyEnemyCreeps() const { return nearbyEnemyCreeps; }
@@ -264,6 +265,7 @@ public:
 	FORCEINLINE class ACreepCamp* GetNearbyEnemyCamp() const { return nearbyEnemyCamp; }
 	FORCEINLINE class ATowerBase* GetNearbyEnemyTower() const { return nearbyEnemyTower; }
 	FORCEINLINE bool HasJustRecruited() const { return bJustRecruited; }
+
 
 private:
 	//AIHERO

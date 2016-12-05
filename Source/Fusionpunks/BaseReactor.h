@@ -20,6 +20,8 @@ public:
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
+	bool isDestroyed = false;
+	FORCEINLINE float GetHpPercent() const { return currentHealth / maxHealth; }
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = Health)

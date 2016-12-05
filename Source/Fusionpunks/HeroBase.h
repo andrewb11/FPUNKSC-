@@ -168,17 +168,19 @@ public:
 	FORCEINLINE void SetInsideHealingWell(bool status) {bInsideHealingWell = status;}
 	FORCEINLINE bool InsideHealingWell() const { return bInsideHealingWell; }
 	FORCEINLINE bool IsCreepAttacking() const { return bCreepIsAttacking; }
-	FORCEINLINE bool IsHeroAttacking() const { return bHeroIsAttacking; }
+	FORCEINLINE bool IsHeroAttacking() const { return bHeroIsAttacking; } 
 	FORCEINLINE void SetCreepAttacking(bool status) { bCreepIsAttacking = status; }
 	FORCEINLINE void SetHeroAttacking(bool status)  { bHeroIsAttacking = status; }
 	FORCEINLINE class ACreep* GetAttackingCreep() const { return attackingCreep; }
-	FORCEINLINE class ABase* GetEnemyBase() const { return enemyBase; }
+	//FORCEINLINE class ABase* GetEnemyBaseDoor() const { return enemyBase; }
 	FORCEINLINE TArray<class ATowerBase*> GetTeamTowers() const { return teamTowers; }
-	
+	FORCEINLINE int32 NumEnemyBaseTowers() const { return  enemyBaseTowers.Num(); }
 	void AddToCapturedCamps(class ACreepCamp* camp);
 	void RemoveFromCapturedCamps(class ACreepCamp* camp);
 	void UpdateHeroStats();
 	void SetIsCapturing(bool status, class ACreepCamp* camp);
+	void RemoveEnemyBaseTower(AActor* tower);
+
 protected:
 	//AI HERO STUFFS
 	class ACreepCamp* campBeingCaptured;
@@ -186,10 +188,19 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Respawn)
 		TSubclassOf<class ARespawnOverTime> respawnClass;
 
-	UPROPERTY(EditDefaultsOnly, Category = EnemyBase)
-		TSubclassOf<class ABase> enemyBaseClass;
+	UPROPERTY(EditDefaultsOnly, Category = AIStuff)
+		TSubclassOf<class ABaseDoor> enemyBaseDoorClass;
+	UPROPERTY(EditDefaultsOnly, Category = AIStuff)
+		TSubclassOf<class ABaseReactor> enemyBaseReactorClass;
+	UPROPERTY(EditDefaultsOnly, Category = AIStuff)
+		TSubclassOf<class ATowerBase> towerClass;
+	UPROPERTY(EditDefaultsOnly, Category = AIStuff)
+		TSubclassOf<class ATowerBase> enemyBaseTowerClass;
 
-	class ABase* enemyBase;
+	
+	TArray<AActor*> enemyBaseTowers;
+	
+	AActor *enemyBaseDoor, *enemyBaseReactor;
 
 	class ARespawnOverTime* respawnEffect;
 
@@ -209,8 +220,7 @@ protected:
 
 	class ACreep* attackingCreep = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = TowerClass)
-		TSubclassOf<class ATowerBase> towerClass;
+	
 
 	TArray<class ATowerBase*> teamTowers;
 

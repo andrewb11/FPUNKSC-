@@ -33,7 +33,7 @@ void UBTTask_ApproachTower::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* N
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
 
 
-	if (hero->CheckForNearbyInteractions())
+	if (hero->CheckForNearbyEnemyHero())
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 	}

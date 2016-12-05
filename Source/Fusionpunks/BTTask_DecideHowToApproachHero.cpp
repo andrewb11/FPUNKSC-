@@ -41,6 +41,8 @@ EBTNodeResult::Type UBTTask_DecideHowToApproachHero::ExecuteTask(UBehaviorTreeCo
 		if (attackTarget != nullptr && campTarget!= nullptr)
 		{
 
+			UE_LOG(LogTemp, Error, TEXT( "Distance From Target Camp %f "), hero->GetDistanceTo(campTarget));
+
 			if (OwnerComp.GetAIOwner()->GetPawn()->ActorHasTag("Cyber"))
 				teamCampType = ECampType::CT_Cyber;
 			else
@@ -52,9 +54,11 @@ EBTNodeResult::Type UBTTask_DecideHowToApproachHero::ExecuteTask(UBehaviorTreeCo
 			
 			}
 
-			else if ((hero->IsCapturing() || hero->GetDistanceTo(campTarget) <= 850.0f) && campTarget->GetCampType() != teamCampType || (OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp") && hero->GetDistanceTo(Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("DefendCampTarget"))) <= 850.0f))
+			
+
+			else if ((hero->IsCapturing() || hero->GetDistanceTo(campTarget) <= 500.0f) && campTarget->GetCampType() != teamCampType)
 			{	
-				
+				UE_LOG(LogTemp, Error, TEXT("Defensivs State ... Distance From Target Camp %f "), hero->GetDistanceTo(campTarget));
 				if(OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp"))
 					campTarget = Cast<ACreepCamp>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("DefendCampTarget"));
 
@@ -146,6 +150,7 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 
 							else if (ability2 != nullptr &&  ability2->CanUse())
 							{
+								OwnerComp.GetAIOwner()->StopMovement();
 								ability2->Use();
 							}
 					
@@ -168,6 +173,7 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 							}
 							else if (ability0 != nullptr && ability0->CanUse() && hero->GetDistanceTo(attackTarget) >= 575.0f)
 							{
+								OwnerComp.GetAIOwner()->StopMovement();
 								ability0->Use();
 							}
 
@@ -191,6 +197,7 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 
 							if (ability2 != nullptr &&  ability2->CanUse())
 							{
+								OwnerComp.GetAIOwner()->StopMovement();
 								ability2->Use();
 							}
 						}
@@ -224,6 +231,7 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 
 							else if (ability2 != nullptr &&  ability2->CanUse())
 							{
+								OwnerComp.GetAIOwner()->StopMovement();
 								ability2->Use();
 							}
 						}
@@ -234,6 +242,7 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 							
 							 if (ability0 != nullptr && ability0->CanUse() && hero->GetDistanceTo(enemyCreep) >= 575.0f)
 							{
+								 OwnerComp.GetAIOwner()->StopMovement();
 								ability0->Use();
 							}
 
@@ -266,6 +275,7 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 
 					 if (ability2 != nullptr &&  ability2->CanUse())
 					{
+						 OwnerComp.GetAIOwner()->StopMovement();
 						ability2->Use();
 					}
 				}
@@ -311,6 +321,7 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 
 						else if (ability2 != nullptr &&  ability2->CanUse())
 						{
+							OwnerComp.GetAIOwner()->StopMovement();
 							ability2->Use();
 						}
 						
@@ -330,6 +341,7 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 						}
 						else if (ability0 != nullptr && ability0->CanUse() && hero->GetDistanceTo(attackTarget) >= 575.0f)
 						{
+							OwnerComp.GetAIOwner()->StopMovement();
 							ability0->Use();
 						}
 
@@ -368,6 +380,7 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 
 						else if (ability2 != nullptr &&  ability2->CanUse())
 						{
+							OwnerComp.GetAIOwner()->StopMovement();
 							ability2->Use();
 						}
 					}
@@ -378,6 +391,7 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 					
 						 if (ability0 != nullptr && ability0->CanUse() && hero->GetDistanceTo(enemyCreep) >= 575.0f)
 						{
+							 OwnerComp.GetAIOwner()->StopMovement();
 							ability0->Use();
 						}
 

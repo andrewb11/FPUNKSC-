@@ -23,7 +23,7 @@ void AProjectileTowerDamage::ApplyEffect()
 	ATowerBase* tower = Cast <ATowerBase> (GetOwner());
 	if (effectTarget)
 	{
-		tower->SpawnProjectiles();
+		tower->SpawnProjectiles(effectTarget);
 	}
 	else
 	{
@@ -32,6 +32,14 @@ void AProjectileTowerDamage::ApplyEffect()
 		
 	//float damage = attackTarget->TakeDamage(20f, DamageEvent, NULL, this);
 }
+
+
+void AProjectileTowerDamage::ChangeTarget(AActor* newTarget)
+{
+	effectTarget = newTarget;
+}
+
+/*
 void AProjectileTowerDamage::PauseTimer()
 {
 	GetWorld()->GetTimerManager().PauseTimer(applyEffectHandle);
@@ -41,8 +49,10 @@ bool AProjectileTowerDamage::IsPaused()
 {
 	return GetWorld()->GetTimerManager().IsTimerPaused(applyEffectHandle);
 }
+
 void AProjectileTowerDamage::UnPauseTimer(AActor* newTarget)
 {
 	 effectTarget = newTarget;
 	 GetWorld()->GetTimerManager().UnPauseTimer(applyEffectHandle);
 }
+*/

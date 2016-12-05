@@ -47,15 +47,23 @@ void ATowerBase::BeginPlay()
 {
 	Super::BeginPlay();
 	TArray<AActor*> herosInGame;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), heroClass, herosInGame);
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), teamheroClass, herosInGame);
 
-	if (herosInGame.Num() == 1)
+	if (herosInGame.Num()==1)
 	{
-		//UE_LOG(LogTemp, Error, TEXT("Tower Found Team Hero."));
 		teamHero = Cast<AHeroBase>(herosInGame[0]);
 	}
 
+	herosInGame.Empty();
 
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), enemyheroClass, herosInGame);
+
+	if (herosInGame.Num() == 1)
+	{
+		enemyHero = Cast<AHeroBase>(herosInGame[0]);
+	}
+
+	currHP = maxHP;
 
 }
 
@@ -101,6 +109,12 @@ float ATowerBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dam
 	UE_LOG(LogTemp, Log, TEXT("Tower took %f damage."), DamageAmount);
 	if (currHP <= 0) 
 	{
+
+		if (ActorHasTag("BaseTower"))
+		{
+			enemyHero->RemoveEnemyBaseTower(this);
+		}
+
 		AHeroBase* hero = Cast<AHeroBase>(DamageCauser);
 		if (hero)
 		{

@@ -31,8 +31,10 @@ public:
 	float destroyTimer = 0;
 
 	bool startDestroyTimer = false;
-
 	
+	FORCEINLINE void SetSpawner(class AChainLightningSpawner* spawner) { lightningSpawner = spawner; }
+	
+
 
 private:
 	AActor* source, *target;
@@ -48,6 +50,9 @@ private:
 		TSubclassOf<AAbilityBase> chainLightningAbility;
 	
 	TArray<AActor*> affectedActors;
+
+
+	class AChainLightningSpawner* lightningSpawner;
 
 private:
 	UFUNCTION()

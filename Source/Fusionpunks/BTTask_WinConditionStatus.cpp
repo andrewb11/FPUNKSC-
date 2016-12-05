@@ -16,7 +16,7 @@ EBTNodeResult::Type UBTTask_WinConditionStatus::ExecuteTask(UBehaviorTreeCompone
 	hero = Cast<AHeroBase>(OwnerComp.GetAIOwner()->GetPawn());
 	if (hero != nullptr)
 	{
-		if (hero->GetArmySize() >= creepWinAmount)
+		if (hero->GetArmySize() >= creepWinAmount || hero->NumEnemyBaseTowers() == 0)
 		{
 			OwnerComp.GetBlackboardComponent()->SetValueAsBool("GoingForWin", true);
 			return EBTNodeResult::Succeeded;

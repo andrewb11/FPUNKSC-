@@ -43,6 +43,7 @@ void UBTTask_Escape::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 
 		else  if (dashAbility!=nullptr && dashAbility->CanUse())
 		{
+			OwnerComp.GetAIOwner()->StopMovement();
 			dashAbility->Use();
 		}
 

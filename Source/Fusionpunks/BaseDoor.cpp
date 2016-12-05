@@ -12,6 +12,10 @@ ABaseDoor::ABaseDoor()
 	RootComponent = mesh;
 	destructMesh->AttachToComponent(mesh, FAttachmentTransformRules::KeepRelativeTransform);
 	currentHealth = maxHealth;
+
+	destructMesh->OnComponentFracture.AddDynamic(this, &ABaseDoor::AfterFracture);
+
+
 }
 
 void ABaseDoor::BeginPlay()
@@ -30,13 +34,26 @@ float ABaseDoor::TakeDamage(float DamageAmount, struct FDamageEvent const & Dama
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Base Destroyed"), DamageAmount);
 		mesh->SetVisibility(false);
+		mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		destructMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		destructMesh->SetSimulatePhysics(true);
 		//SetActorEnableCollision(false);
-		mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		
+		isDestroyed = true;
 	}
 
 
 
 	return DamageAmount;
+}
+
+void ABaseDoor::AfterFracture(const FVector& in, const FVector& out)
+{
+
+	UE_LOG(LogTemp, Warning, TEXT("AFTER FRACTURE FUNCTION"));
+	//destructMesh->SetCollisionObjectType(DestroyedDoor);
+	destructMesh->SetCollisionProfileName("DestroyedDoor");
+	destructMesh->UpdateCollisionProfile();
+	//destructMesh->SetCollisionResponseToChannel(Hero, ECollisionResponse::ECR_Ignore);
+
 }

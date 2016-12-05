@@ -75,7 +75,7 @@ void ACyberTower::Tick(float DeltaTime)
 	if (enemyUnits.Num() > 0)
 	{
 		//UE_LOG(LogTemp, Log, TEXT("Cyber Tower found Player"));
-		if (enemyUnits[0]->IsA(ACharacter::StaticClass()))
+		if (enemyUnits[0]->IsA(AHeroBase::StaticClass()) && enemyUnits.Num() > 1)
 		{
 		//	UE_LOG(LogTemp, Log, TEXT("Tower Attacking Player!"));
 
@@ -88,16 +88,44 @@ void ACyberTower::Tick(float DeltaTime)
 				//UE_LOG(LogTemp, Log, TEXT("Activating Laser Beam!"));
 			}*/
 			
-			FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(turretGun->GetComponentLocation(), enemyUnits[0]->GetActorLocation());
-			turretGun->SetRelativeRotation(lookAtTargetRotation);
+			
 			//beam->SetBeamSourcePoint(0, turretGun->GetComponentLocation(), 0);
 			//beam->SetBeamTargetPoint(0, enemyUnits[0]->GetActorLocation(), 0);
-			
+
 			if (!bIsDealingDMG)
 			{
+				towerDMG->StartTimer(damageEverySeconds, enemyUnits[1]);
+				bIsDealingDMG = true;
+			}
+
+			else if (bIsDealingDMG && towerDMG->GetTarget() != enemyUnits[1])
+			{
+				towerDMG->ChangeTarget(enemyUnits[1]);
+			}
+
+
+
+			FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(turretGun->GetComponentLocation(), enemyUnits[1]->GetActorLocation());
+			turretGun->SetRelativeRotation(lookAtTargetRotation);
+			
+		}
+		else 
+		{
+			if (!bIsDealingDMG)
+			{
+
 				towerDMG->StartTimer(damageEverySeconds, enemyUnits[0]);
 				bIsDealingDMG = true;
-			}			
+			}
+
+			else if (bIsDealingDMG && towerDMG->GetTarget() != enemyUnits[0])
+			{
+				towerDMG->ChangeTarget(enemyUnits[0]);
+
+			}
+
+			FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(turretGun->GetComponentLocation(), enemyUnits[0]->GetActorLocation());
+			turretGun->SetRelativeRotation(lookAtTargetRotation);
 		}
 	}
 
@@ -120,7 +148,7 @@ void ACyberTower::Tick(float DeltaTime)
 	}
 }
 
-void ACyberTower::SpawnProjectiles()
+void ACyberTower::SpawnProjectiles(AActor* enemy)
 {
 	if (projectileClass != NULL)
 	{
@@ -132,19 +160,17 @@ void ACyberTower::SpawnProjectiles()
 			FVector spawnLocation = GetActorLocation();
 			spawnLocation.Z += 200;
 			AProjectile* projectile1 = world->SpawnActor<AProjectile>(projectileClass, shootPos1->GetComponentLocation(), FRotator(0, 0, 0), SpawnParams);
-			projectile1->SetTarget(enemyUnits[0]);
+			projectile1->SetTarget(enemy);
 			projectile1->SetDamage(damage / 4.0f);
 			AProjectile* projectile2 = world->SpawnActor<AProjectile>(projectileClass, shootPos2->GetComponentLocation(), FRotator(0, 0, 0), SpawnParams);
-			projectile2->SetTarget(enemyUnits[0]);
+			projectile2->SetTarget(enemy);
 			projectile2->SetDamage(damage / 4.0f);
 			AProjectile* projectile3 = world->SpawnActor<AProjectile>(projectileClass, shootPos3->GetComponentLocation(), FRotator(0, 0, 0), SpawnParams);
-			projectile3->SetTarget(enemyUnits[0]);
+			projectile3->SetTarget(enemy);
 			projectile3->SetDamage(damage / 4.0f);
 			AProjectile* projectile4 = world->SpawnActor<AProjectile>(projectileClass, shootPos4->GetComponentLocation(), FRotator(0, 0, 0), SpawnParams);
-			projectile4->SetTarget(enemyUnits[0]);
+			projectile4->SetTarget(enemy);
 			projectile4->SetDamage(damage / 4.0f);
-
-
 		}
 
 	}

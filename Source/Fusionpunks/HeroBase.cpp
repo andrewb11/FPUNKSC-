@@ -7,7 +7,7 @@
 #include "PlayerHealthBarWidget.h"
 #include "Creep.h"
 #include "HeroStats.h"
-#include "Base.h"
+#include "BaseDoor.h"
 #include "TowerBase.h"
 #include "FloatingDamageWidget.h"
 #include "HeroAIController.h"
@@ -186,16 +186,25 @@ void AHeroBase::BeginPlay()
 
 	if (ActorHasTag("AI"))
 	{
-		TArray<AActor*> bases;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), enemyBaseClass, bases);
+		TArray<AActor*> baseDoors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), enemyBaseDoorClass, baseDoors);
 
-		if (bases.Num() == 1)
+		if (baseDoors.Num() == 1)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Found Enemy Base!!!!"));
-			enemyBase = Cast<ABase>(bases[0]);
-			heroAI->LinkEnemyBaseProps(enemyBase);
+			UE_LOG(LogTemp, Warning, TEXT("Found Enemy Base Door!!!!"));
+			enemyBaseDoor = baseDoors[0];	
 		}
 
+		TArray<AActor*> baseReactors;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), enemyBaseReactorClass, baseReactors);
+
+		if (baseReactors.Num() == 1)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Found Enemy Base Reactor!!!!"));
+			enemyBaseReactor = baseReactors[0];
+		}
+
+		heroAI->LinkEnemyBaseProps(enemyBaseDoor, enemyBaseReactor);
 		TArray<AActor*> towersInGame;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), towerClass, towersInGame);
 		for (int i = 0; i < towersInGame.Num(); i++)
@@ -203,7 +212,9 @@ void AHeroBase::BeginPlay()
 			teamTowers.Add(Cast<ATowerBase>(towersInGame[i]));
 
 		}
-		UE_LOG(LogTemp, Error, TEXT("Found %d towers"), teamTowers.Num());
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), enemyBaseTowerClass, enemyBaseTowers);
+	
+		//UE_LOG(LogTemp, Error, TEXT("Found %d towers"), teamTowers.Num());
 	}
 
 	//Initialize Player HUD
@@ -702,14 +713,14 @@ bool AHeroBase::CheckForNearbyOnwedCreepCamps()
 		{
 	
 			ACreepCamp* currCamp = Cast<ACreepCamp>(Results[i].GetActor());
-			if (team.Compare("Diesel") == 0 && currCamp->GetCampType() == ECampType::CT_Diesel && currCamp->GetNumOfCreepsAtCamp() - 1> 0
-				&& !bJustRecruited)
+			if (team.Compare("Diesel") == 0 && currCamp->GetCampType() == ECampType::CT_Diesel && /*!currCamp->HasBeenRecruitedFrom() && */
+				currCamp->GetNumOfCreepsAtCamp() - 1 > 0 && GetArmySize() < maxArmySize && !bJustRecruited)
 			{
 				nearbyOwnedCreepCamps.Add(currCamp);
 			}
 
-			else if (team.Compare("Cyber") == 0 && currCamp->GetCampType() == ECampType::CT_Cyber && currCamp->GetNumOfCreepsAtCamp() - 1 > 0
-				&& !bJustRecruited)
+			else if (team.Compare("Cyber") == 0 && currCamp->GetCampType() == ECampType::CT_Cyber &&  /*!currCamp->HasBeenRecruitedFrom() && */
+				currCamp->GetNumOfCreepsAtCamp() - 1 > 0 && GetArmySize() < maxArmySize && !bJustRecruited)
 			{
 				nearbyOwnedCreepCamps.Add(currCamp);
 			}
@@ -1382,7 +1393,7 @@ void AHeroBase::AIRecruited()
 	if (!bJustRecruited)
 	{
 		bJustRecruited = true;
-		GetWorld()->GetTimerManager().SetTimer(recruitTimerHandle, this, &AHeroBase::TriggerRecruitStatusChange, 5.0f, false);
+		GetWorld()->GetTimerManager().SetTimer(recruitTimerHandle, this, &AHeroBase::TriggerRecruitStatusChange, 10.0f, false);
 	}
 }
 
@@ -1410,6 +1421,10 @@ bool AHeroBase::CheckIfTowerIsBeingAttacked()
 	return false;
 }
 
-
+void AHeroBase::RemoveEnemyBaseTower(AActor* tower)
+{
+	if (enemyBaseTowers.Contains(tower))
+		enemyBaseTowers.Remove(tower);
+}
 
 

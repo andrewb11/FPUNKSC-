@@ -4,6 +4,8 @@
 #include "HeroBase.h"
 #include "TowerBase.h"
 #include "Creep.h"
+#include "BaseDoor.h"
+#include "BaseReactor.h"
 #include "HeroAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BTTask_AttackEnemyHero.h"
@@ -34,6 +36,18 @@ EBTNodeResult::Type UBTTask_AttackEnemyHero::ExecuteTask(UBehaviorTreeComponent&
 		enemyTower = Cast<ATowerBase>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("AttackTarget"));
 		targetType = ETargetType::TT_Tower;
 	}
+	else if (OwnerComp.GetBlackboardComponent()->GetValueAsObject("AttackTarget")->IsA(ABaseDoor::StaticClass()))
+	{
+		enemyBaseDoor= Cast<ABaseDoor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("AttackTarget"));
+		targetType = ETargetType::TT_BaseDoor;
+	}
+	else if (OwnerComp.GetBlackboardComponent()->GetValueAsObject("AttackTarget")->IsA(ABaseReactor::StaticClass()))
+	{
+		enemyBaseReactor = Cast<ABaseReactor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("AttackTarget"));
+		targetType = ETargetType::TT_BaseReactor;
+	}
+
+
 	//OwnerComp.GetAIOwner()->StopMovement();
 	isAttacking = false;
 	if (hero != nullptr)
@@ -137,7 +151,7 @@ void UBTTask_AttackEnemyHero::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 			hero->SetActorRotation(lookAtTargetRotation);
 		}
 
-		if (hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(enemyTower) > 500 || enemyTower->GetHpPercent() <= 0)
+		if ((enemyTower->GetHpPercent() > 0.2f && hero->CheckForNearbyEnemyHero()) ||  hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(enemyTower) > 500 || enemyTower->GetHpPercent() <= 0)
 		{
 			UE_LOG(LogTemp, Error, TEXT("STOP ATTACK TOWER TIMER"));
 			enemyTower = nullptr;
@@ -150,6 +164,71 @@ void UBTTask_AttackEnemyHero::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 			}
 		}
 	}
+
+	else if (targetType == ETargetType::TT_BaseDoor && enemyBaseDoor != nullptr)
+	{
+		if (!isAttacking && enemyBaseDoor!= nullptr)
+		{
+			GetWorld()->GetTimerManager().SetTimer(attackTimerHandle, this, &UBTTask_AttackEnemyHero::AttackBaseOnTimer, attackSpeed, true, 0);
+			isAttacking = true;
+			UE_LOG(LogTemp, Error, TEXT("Starting Attack Base door Timer!"));
+		}
+
+		if (isAttacking && enemyBaseDoor != nullptr && ((hero->ActorHasTag("Diesel") && !hammerStormClass->bIsSpinning) || hero->ActorHasTag("Cyber")))
+		{
+			FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(hero->GetActorLocation(), enemyBaseDoor->GetActorLocation());
+			lookAtTargetRotation.Pitch = 0;
+			hero->SetActorRotation(lookAtTargetRotation);
+		}
+
+		if ((enemyBaseDoor->GetHpPercent() > 0.2f && hero->CheckForNearbyEnemyHero()) || hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(enemyBaseDoor) > 500 || enemyBaseDoor->isDestroyed)
+		{
+			UE_LOG(LogTemp, Error, TEXT("STOP ATTACK base door TIMER"));
+			enemyBaseDoor = nullptr;
+
+			if (attackTimerHandle.IsValid())
+			{
+				GetWorld()->GetTimerManager().ClearTimer(attackTimerHandle);
+				//hero->SetCreepAttacking(false);
+				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+			}
+		}
+	}
+
+
+	else if (targetType == ETargetType::TT_BaseReactor && enemyBaseReactor != nullptr)
+	{
+		if (!isAttacking && enemyBaseReactor != nullptr)
+		{
+			GetWorld()->GetTimerManager().SetTimer(attackTimerHandle, this, &UBTTask_AttackEnemyHero::AttackBaseOnTimer, attackSpeed, true, 0);
+			isAttacking = true;
+			UE_LOG(LogTemp, Error, TEXT("Starting Attack Base Reactor Timer!"));
+		}
+
+		if (isAttacking && enemyBaseReactor != nullptr && ((hero->ActorHasTag("Diesel") && !hammerStormClass->bIsSpinning) || hero->ActorHasTag("Cyber")))
+		{
+			FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(hero->GetActorLocation(), enemyBaseReactor->GetActorLocation());
+			lookAtTargetRotation.Pitch = 0;
+			hero->SetActorRotation(lookAtTargetRotation);
+		}
+
+		if ((enemyBaseReactor->GetHpPercent() > 0.2f && hero->CheckForNearbyEnemyHero()) || hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(enemyBaseReactor) > 500 || enemyBaseReactor->isDestroyed)
+		{
+			UE_LOG(LogTemp, Error, TEXT("STOP ATTACK base Reactor TIMER"));
+			enemyBaseReactor = nullptr;
+
+			if (attackTimerHandle.IsValid())
+			{
+				GetWorld()->GetTimerManager().ClearTimer(attackTimerHandle);
+				//hero->SetCreepAttacking(false);
+				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+			}
+		}
+	}
+
+
+
+
 
 
 	else if(targetType == ETargetType::TT_None)
@@ -269,5 +348,41 @@ void UBTTask_AttackEnemyHero::AttackTowerOnTimer()
 		//hero->Attack(enemyTower);
 	}
 	
+
+}
+
+void UBTTask_AttackEnemyHero::AttackBaseOnTimer()
+{
+	if (targetType == ETargetType::TT_BaseDoor)
+	{
+		
+		if (enemyBaseDoor == nullptr || hero->GetPlayerHealthAsDecimal() <= 0 || hero->bIsRespawning || hero->GetDistanceTo(enemyBaseDoor) > 500 || enemyBaseDoor->isDestroyed)
+		{
+			if (attackTimerHandle.IsValid())
+			{
+				GetWorld()->GetTimerManager().ClearTimer(attackTimerHandle);
+			}
+		}
+
+		else
+			hero->MeleeAttack();
+
+
+	}
+
+	else if (targetType == ETargetType::TT_BaseReactor)
+	{
+		if (enemyBaseReactor == nullptr || hero->GetPlayerHealthAsDecimal() <= 0 || hero->bIsRespawning || hero->GetDistanceTo(enemyBaseReactor) > 500 || enemyBaseReactor->isDestroyed)
+		{
+			if (attackTimerHandle.IsValid())
+			{
+				GetWorld()->GetTimerManager().ClearTimer(attackTimerHandle);
+			}
+		}
+
+		else
+			hero->MeleeAttack();
+	}
+
 
 }

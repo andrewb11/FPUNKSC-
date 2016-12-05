@@ -3,6 +3,7 @@
 #include "Fusionpunks.h"
 #include "HeroBase.h"
 #include "Classes/Particles/ParticleSystemComponent.h"
+#include "ChainLightningSpawner.h"
 #include "ChainLightning.h"
 
 
@@ -97,7 +98,10 @@ void AChainLightning::TriggerEnter(class UPrimitiveComponent* ThisComp, class AA
 			CheckForNearbyEnemies();
 			hasBeenTriggered = true;
 			FDamageEvent DamageEvent;
-			OtherActor->TakeDamage(20, DamageEvent, Instigator->GetController(), Instigator);
+			if (lightningSpawner != nullptr && lightningSpawner->damage > 0)
+			{
+				OtherActor->TakeDamage(lightningSpawner->damage, DamageEvent, Instigator->GetController(), Instigator);
+			}
 		}
 	}	
 }
@@ -124,7 +128,7 @@ void AChainLightning::CheckForNearbyEnemies()
 		target->GetActorLocation(),
 		FQuat(),
 		obejctQP,
-		FCollisionShape::MakeSphere(750),
+		FCollisionShape::MakeSphere(lightningSpawner->range),
 		QueryParameters);
 
 	if (Results.Num() == 0) {
@@ -157,7 +161,7 @@ void AChainLightning::CheckForNearbyEnemies()
 			}
 
 
-			if (!affectedActors.Contains(closestEnemy))
+			if (!affectedActors.Contains(closestEnemy) && affectedActors.Num() < lightningSpawner->maxHits)
 			{
 				UE_LOG(LogTemp, Display, TEXT("Found Unaffected NearbyEnemy"));
 				FVector spawnLoc;
@@ -173,6 +177,7 @@ void AChainLightning::CheckForNearbyEnemies()
 				{
 					lightning->AddAffectedActor(affectedActors[i]);
 				}
+				lightning->SetSpawner(lightningSpawner);
 				lightning->AddAffectedActor(closestEnemy);
 				lightning->SetBeamPoints(target, closestEnemy);
 				lightning->Use();

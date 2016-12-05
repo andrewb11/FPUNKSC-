@@ -8,6 +8,9 @@
 /**
  * 
  */
+
+
+
 UCLASS()
 class FUSIONPUNKS_API UBTTask_ApproachBase : public UBTTaskNode
 {
@@ -19,8 +22,6 @@ protected:
 
 	class AHeroBase* hero;
 	class AHeroAIController* heroAI;
-	AActor* enemyBase;
-	
-	
+	AActor* enemyBase;	
 	
 };

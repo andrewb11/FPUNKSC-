@@ -16,7 +16,7 @@ class FUSIONPUNKS_API ATowerBase : public AActor
 public:	
 	ATowerBase();
 
-	virtual void SpawnProjectiles() { check(0 && "You must override this"); }
+	virtual void SpawnProjectiles(AActor* enemy) { check(0 && "You must override this"); }
 
 	virtual void BeginPlay() override;
 	
@@ -97,9 +97,11 @@ protected:
 		float damageEverySeconds;
 
 	UPROPERTY(EditDefaultsOnly, Category = HeroClass)
-		TSubclassOf<class AHeroBase> heroClass;
-
+		TSubclassOf<class AHeroBase> teamheroClass;
+	UPROPERTY(EditDefaultsOnly, Category = HeroClass)
+		TSubclassOf<class AHeroBase> enemyheroClass;
 	class AHeroBase* teamHero;
+	class AHeroBase* enemyHero;
 
 
 	bool bIsDealingDMG = false;

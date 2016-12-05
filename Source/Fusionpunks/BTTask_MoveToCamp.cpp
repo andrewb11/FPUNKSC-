@@ -5,6 +5,7 @@
 #include "HeroAIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "HeroBase.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "HeroStats.h"
 #include "AbilityBase.h"
 #include "BTTask_MoveToCamp.h"
@@ -100,13 +101,26 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 	else if (movementAbility != nullptr &&  movementAbility->CanUse())
 	{
+		FRotator lookAtTargetRotation;
+		if (campGoal != EReasonForGoingToCamp::RGC_DefendingBase)
+		{
+			 lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(hero->GetActorLocation(), targetCamp->GetActorLocation());
+		}
+		else
+		{
+			lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(hero->GetActorLocation(), baseStructure->GetActorLocation());
+		}
+
+		lookAtTargetRotation.Pitch = 0;
+		hero->SetActorRotation(lookAtTargetRotation);
+		OwnerComp.GetAIOwner()->StopMovement();
 		movementAbility->Use();
 	}
 	
 
 
 
-	if (heroStats->GetHealthPercent() < healthPercentageAbort)
+	if (heroStats->GetHealthPercent() < healthPercentageAbort && campGoal != EReasonForGoingToCamp::RGC_Recruiting)
 	{
 		UE_LOG(LogTemp, Error, TEXT("AI HAS LOW HP WHILE Moving to target"));
 		//heroAI->ResetAITreeTaskStatus();

@@ -36,6 +36,9 @@ float ABaseReactor::TakeDamage(float DamageAmount, struct FDamageEvent const & D
 	UE_LOG(LogTemp, Warning, TEXT("Base took %f damage."), DamageAmount);
 	if (currentHealth <= 0)
 	{
+
+		isDestroyed = true;
+
 		if (Tags.Contains("CyberBase"))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Diesel Wins!"));

@@ -2,6 +2,7 @@
 
 #include "Fusionpunks.h"
 #include "ProjectileTowerDamage.h"
+#include "HeroBase.h"
 #include "DieselTower.h"
 
 
@@ -64,21 +65,49 @@ void ADieselTower::Tick( float DeltaTime )
 	
 	if (enemyUnits.Num() > 0)
 	{
-		if (enemyUnits[0]->IsA(ACharacter::StaticClass()))
+		if (enemyUnits[0]->IsA(AHeroBase::StaticClass()) && enemyUnits.Num() > 1)
 		{
 			//UE_LOG(LogTemp, Log, TEXT("Attacking Player!"));
-			if (!bIsDealingDMG)
+
+			 if (!bIsDealingDMG)
+			{ 	
+				towerDMG->StartTimer(damageEverySeconds, enemyUnits[1]);
+				bIsDealingDMG = true;
+			}
+
+			 else if (bIsDealingDMG && towerDMG->GetTarget() != enemyUnits[1])
+			 {
+				 towerDMG->ChangeTarget(enemyUnits[1]);
+			 }
+
+
+			FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(turretGun->GetComponentLocation(), enemyUnits[1]->GetActorLocation());
+			turretGun->SetRelativeRotation(FRotator(lookAtTargetRotation.Pitch, turretGun->RelativeRotation.Yaw, turretGun->RelativeRotation.Roll));
+			//FRotator lookAtTargetRotation2 = UKismetMathLibrary::FindLookAtRotation(turretCone->GetComponentLocation(), enemyUnits[0]->GetActorLocation());
+			turretCone->SetRelativeRotation(FRotator(turretCone->RelativeRotation.Pitch, lookAtTargetRotation.Yaw - turretBase->RelativeRotation.Yaw, turretCone->RelativeRotation.Roll));
+			
+		}
+
+
+		else
+		{
+		
+			 if (!bIsDealingDMG)
 			{
-				
+
 				towerDMG->StartTimer(damageEverySeconds, enemyUnits[0]);
 				bIsDealingDMG = true;
 			}
+
+			 else if (bIsDealingDMG && towerDMG->GetTarget() != enemyUnits[0])
+			 {
+				 towerDMG->ChangeTarget(enemyUnits[0]);
+			 }
 
 			FRotator lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(turretGun->GetComponentLocation(), enemyUnits[0]->GetActorLocation());
 			turretGun->SetRelativeRotation(FRotator(lookAtTargetRotation.Pitch, turretGun->RelativeRotation.Yaw, turretGun->RelativeRotation.Roll));
 			//FRotator lookAtTargetRotation2 = UKismetMathLibrary::FindLookAtRotation(turretCone->GetComponentLocation(), enemyUnits[0]->GetActorLocation());
 			turretCone->SetRelativeRotation(FRotator(turretCone->RelativeRotation.Pitch, lookAtTargetRotation.Yaw - turretBase->RelativeRotation.Yaw, turretCone->RelativeRotation.Roll));
-			
 		}
 	}
 	else 
@@ -92,7 +121,7 @@ void ADieselTower::Tick( float DeltaTime )
 
 }
 
-void ADieselTower::SpawnProjectiles()
+void ADieselTower::SpawnProjectiles(AActor* enemy)
 {
 	if (whatToSpawn != NULL)
 	{
@@ -102,10 +131,10 @@ void ADieselTower::SpawnProjectiles()
 			FActorSpawnParameters SpawnParams;
 			SpawnParams.Owner = this;
 			AProjectile* projectile1 = world->SpawnActor<AProjectile>(whatToSpawn, shootPos1->GetComponentLocation(), FRotator(0, 0, 0), SpawnParams);
-			projectile1->SetTarget(enemyUnits[0]);
+			projectile1->SetTarget(enemy);
 			projectile1->SetDamage(damage / 2.0f);
 			AProjectile* projectile2 = world->SpawnActor<AProjectile>(whatToSpawn, shootPos2->GetComponentLocation(), FRotator(0, 0, 0), SpawnParams);
-			projectile2->SetTarget(enemyUnits[0]);
+			projectile2->SetTarget(enemy);
 			projectile2->SetDamage(damage / 2.0f);
 		}
 	}

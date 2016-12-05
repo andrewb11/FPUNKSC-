@@ -3,7 +3,6 @@
 #include "Fusionpunks.h"
 #include "HeroBase.h"
 #include "CreepCamp.h"
-#include "Base.h"
 #include "HealingWell.h"
 #include "HeroAIController.h"
 
@@ -192,8 +191,13 @@ bool AHeroAIController::CheckCampBeingAttacked()
 	return false;
 }
 
-void AHeroAIController::LinkEnemyBaseProps(ABase* base) 
+void AHeroAIController::LinkEnemyBaseProps(AActor* baseDoor, AActor* baseReactor ) 
 {
-	enemyBase = base;
-	BlackboardComponent->SetValueAsObject("EnemyBase", Cast<AActor>(base));
+	if (baseDoor != nullptr && baseReactor != nullptr)
+	{
+		enemyBaseDoor = baseDoor;
+		enemyBaseReactor = baseReactor;
+		BlackboardComponent->SetValueAsObject("EnemyBaseDoor", baseDoor);
+		BlackboardComponent->SetValueAsObject("EnemyBaseReactor", baseReactor);
+	}
 }

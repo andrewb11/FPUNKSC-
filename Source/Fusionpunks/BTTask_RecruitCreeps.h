@@ -25,7 +25,7 @@ protected:
 	//class ACreep* target;
 	FTimerHandle recruitTimerHandle;
 	UPROPERTY(EditAnywhere)
-		float recruitSpeed = 0.50f;
+		float recruitSpeed = 0.35f;
 	UFUNCTION()
 		void RecruitOnTimer();
 	

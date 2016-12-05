@@ -15,9 +15,11 @@ class FUSIONPUNKS_API AProjectileTowerDamage : public AEffectOverTimeBase
 	
 public:
 	virtual void StartTimer(float time, AActor* Target) override;
-	void PauseTimer();
-	bool IsPaused();
-	void UnPauseTimer(AActor* newTarget);
+	//void PauseTimer();
+	//bool IsPaused();
+	//void UnPauseTimer(AActor* newTarget);
+	void ChangeTarget(AActor* newTarget);
+	FORCEINLINE AActor* GetTarget() const { return effectTarget; }
 protected:	
 	UFUNCTION()
 		virtual	void ApplyEffect() override;

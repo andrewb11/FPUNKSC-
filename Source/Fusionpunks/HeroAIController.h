@@ -100,7 +100,7 @@ public:
 
 	
 
-	void LinkEnemyBaseProps(class ABase* base);
+	void LinkEnemyBaseProps(AActor* baseDoor, AActor* baseReactor);
 
 	//virtual void UpdateControlRotation(float DeltaTime, bool bUpdatePawn) override;
 
@@ -122,7 +122,7 @@ protected:
 
 	class AHeroBase* enemyHero;
 
-	class ABase* enemyBase;
+	AActor *enemyBaseDoor, *enemyBaseReactor;
 
 	class ACreepCamp *campBeingAttacked, *homeCamp;
 

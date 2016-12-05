@@ -16,6 +16,9 @@ class FUSIONPUNKS_API ABaseDoor : public AActor
 public:
 	ABaseDoor();
 	virtual void BeginPlay() override;
+	bool isDestroyed = false;
+	FORCEINLINE float GetHpPercent() const { return currentHealth / maxHealth; }
+
 private:
 
 	UPROPERTY(EditDefaultsOnly)
@@ -24,6 +27,10 @@ private:
 		class UDestructibleComponent* destructMesh;
 	UPROPERTY(EditDefaultsOnly, Category = Health)
 		float maxHealth =100;
+	
+	UFUNCTION()
+		void AfterFracture(const FVector& in, const FVector& out);
+
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
 	float currentHealth;
 };

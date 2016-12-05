@@ -15,6 +15,8 @@ enum class ETargetType : uint8
 	TT_Hero UMETA(DisplayName = "Hero"),
 	TT_Creep UMETA(DisplayName = "Creep"),
 	TT_Tower UMETA(DisplayName = "Tower"),
+	TT_BaseDoor  UMETA(DisplayName = "BaseDoor"),
+	TT_BaseReactor UMETA (DisplayName = "BaseReactor"),
 	TT_None UMETA(DisplayName = "None")
 
 };
@@ -36,6 +38,8 @@ protected:
 	class AHeroBase* enemyHero;
 	class ACreep* enemyCreep;
 	class ATowerBase* enemyTower;
+	class ABaseDoor* enemyBaseDoor;
+	class ABaseReactor* enemyBaseReactor;
 	FTimerHandle attackTimerHandle;
 
 	UPROPERTY(EditAnywhere)
@@ -48,6 +52,9 @@ protected:
 		void AttackCreepOnTimer();
 	UFUNCTION()
 		void AttackTowerOnTimer();
+	UFUNCTION()
+		void AttackBaseOnTimer();
+	
 	
 	class AAbilityBase *ability0, *ability1, *ability2, *ability3;
 	ETargetType targetType = ETargetType::TT_None;

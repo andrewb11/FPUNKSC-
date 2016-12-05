@@ -14,7 +14,7 @@ EBTNodeResult::Type UBTTask_ChooseCreepCamp::ExecuteTask(UBehaviorTreeComponent&
 
 	if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("ReachedCamp"))
 	{
-		//UE_LOG(LogTemp, Error, TEXT("Already Reached Camp..Skip Choose!"));
+		UE_LOG(LogTemp, Error, TEXT("Already Reached Camp..Skip Choose!"));
 		return EBTNodeResult::Succeeded;
 	}
 
@@ -22,19 +22,19 @@ EBTNodeResult::Type UBTTask_ChooseCreepCamp::ExecuteTask(UBehaviorTreeComponent&
 	if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("FoundNearbyEnemyCamp"))
 	{
 		OwnerComp.GetBlackboardComponent()->SetValueAsObject("CampTarget", OwnerComp.GetBlackboardComponent()->GetValueAsObject("NearbyEnemyCamp"));
-	    //UE_LOG(LogTemp, Error, TEXT("Found Nearby Enemy Camp..Skip Choose!!"));
+	    UE_LOG(LogTemp, Error, TEXT("Found Nearby Enemy Camp..Skip Choose!!"));
 		return EBTNodeResult::Succeeded;
 	}
 	
 	if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("GoingForWin"))
 	{
-		//UE_LOG(LogTemp, Error, TEXT("Going for win..Skip Choose!"));
+		UE_LOG(LogTemp, Error, TEXT("Going for win..Skip Choose!"));
 		return EBTNodeResult::Succeeded;
 	}
 
 	if (OwnerComp.GetBlackboardComponent()->GetValueAsBool("IsDefendingCamp"))
 	{	
-		//UE_LOG(LogTemp, Error, TEXT("Hero is defending a camp..Skip Choose!"));
+		UE_LOG(LogTemp, Error, TEXT("Hero is defending a camp..Skip Choose!"));
 		OwnerComp.GetBlackboardComponent()->SetValueAsObject("CampTarget", OwnerComp.GetBlackboardComponent()->GetValueAsObject("DefendCampTarget"));
 		return EBTNodeResult::Succeeded;
 	}
@@ -75,7 +75,7 @@ EBTNodeResult::Type UBTTask_ChooseCreepCamp::ExecuteTask(UBehaviorTreeComponent&
 				{
 					OwnerComp.GetBlackboardComponent()->SetValueAsObject("CampTarget", targetCamp);
 					OwnerComp.GetBlackboardComponent()->SetValueAsBool("CapturedCamp", false);
-				//	UE_LOG(LogTemp, Error, TEXT("Found A Safe Camp!"));
+					UE_LOG(LogTemp, Error, TEXT("Found A Safe Camp!"));
 					return EBTNodeResult::Succeeded;
 				}
 
@@ -83,7 +83,7 @@ EBTNodeResult::Type UBTTask_ChooseCreepCamp::ExecuteTask(UBehaviorTreeComponent&
 				{
 					OwnerComp.GetBlackboardComponent()->SetValueAsObject("CampTarget", heroAI->GetHomeCamp());
 					OwnerComp.GetBlackboardComponent()->SetValueAsBool("CapturedCamp", false);
-					//	UE_LOG(LogTemp, Error, TEXT("Found A Safe Camp!"));
+					UE_LOG(LogTemp, Error, TEXT("Desperate!"));
 					return EBTNodeResult::Succeeded;
 				}
 

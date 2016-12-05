@@ -36,8 +36,8 @@ public:
 
 	void SetDamage(float amount);
 protected:
-	FVector target;
-	
+	FVector targetLocation;
+	AActor* targetActor;
 	ETypeOfEnemy enemyType = ETypeOfEnemy::TE_NoTarget;
 
 	class ACreep* enemyCreep;

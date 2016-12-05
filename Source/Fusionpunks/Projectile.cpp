@@ -145,8 +145,8 @@ void AProjectile::SetTarget(class AActor* OtherActor)
 		enemyType = ETypeOfEnemy::TE_Creep;
 	}
 	
-	target = OtherActor->GetActorLocation();
-	
+	targetLocation = OtherActor->GetActorLocation();
+	targetActor = OtherActor;
 	//enemyPlayer = OtherActor;
 
 
@@ -157,8 +157,7 @@ void AProjectile::TriggerEnter(class UPrimitiveComponent* ThisComp, class AActor
 {
 	if (OtherActor->IsA(ACharacter::StaticClass()))
 	{
-		if ((owningTower->IsA(ACyberTower::StaticClass()) && OtherActor->ActorHasTag("Diesel")) ||
-			(owningTower->IsA(ADieselTower::StaticClass()) && OtherActor->ActorHasTag("Cyber")))
+		if (OtherActor == targetActor)
 		{
 			FDamageEvent DamageEvent;
 			if (damage > 0)
@@ -171,9 +170,9 @@ void AProjectile::TriggerEnter(class UPrimitiveComponent* ThisComp, class AActor
 	}
 
 
-	else if (!OtherActor->IsA(ATowerBase::StaticClass()) && !OtherActor->IsA(AProjectile::StaticClass()))
+	/*else if (!OtherActor->IsA(ATowerBase::StaticClass()) && !OtherActor->IsA(AProjectile::StaticClass()))
 	{
 		Destroy();
-	}
+	}*/
 }
 

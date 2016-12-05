@@ -28,7 +28,7 @@ AActor* AChainLightningSpawner::UpdateTarget()
 		GetOwner()->GetActorLocation(),
 		FQuat(),
 		obejctQP,
-		FCollisionShape::MakeSphere(750),
+		FCollisionShape::MakeSphere(range),
 		QueryParameters);
 	//oldTargetResults = skillTargetResults;
 
@@ -86,6 +86,7 @@ bool AChainLightningSpawner::Ability()
 			<AChainLightning>(chainLightningAbility,
 				spawnLoc,
 				FRotator::ZeroRotator, spawnParams);
+		lightning->SetSpawner(this);
 		lightning->AddAffectedActor(enemy);
 		lightning->SetBeamPoints(GetOwner(), enemy);
 		lightning->Use();

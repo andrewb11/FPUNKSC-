@@ -22,7 +22,7 @@ public:
 	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 	
-	void SpawnProjectiles() override;
+	void SpawnProjectiles(AActor* enemy) override;
 
 	//FORCEINLINE void PauseAttackTimer() { towerDMG->PauseTimer(); }
 private:

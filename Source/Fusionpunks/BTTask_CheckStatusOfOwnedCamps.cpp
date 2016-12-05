@@ -59,14 +59,22 @@ EBTNodeResult::Type UBTTask_CheckStatusOfOwnedCamps::ExecuteTask(UBehaviorTreeCo
 						otherCampObjective->GetDieselCapturePercentage() < 1)))
 				{
 					//About to capture a camp..Not Defend
-					UE_LOG(LogTemp, Error, TEXT("Not Defend because percentage captured = %f"), otherCampObjective->GetDieselCapturePercentage());
+
+					if (hero->ActorHasTag("Diesel"))
+					{
+						UE_LOG(LogTemp, Error, TEXT("Not Defend because percentage captured = %f"), otherCampObjective->GetDieselCapturePercentage());
+					}
+					else if (hero->ActorHasTag("Cyber"))
+					{
+						UE_LOG(LogTemp, Error, TEXT("Not Defend because percentage captured = %f"), otherCampObjective->GetCyberCapturePercentage());
+					}
 
 					campBeingAttacked->SetAIAbondonedCamp(true);
 					OwnerComp.GetBlackboardComponent()->SetValueAsBool("IsDefendingCamp", false);
 					return  EBTNodeResult::Failed;
 				}
 
-				else if ((hero->GetDistanceTo(campBeingAttacked) <= hero->GetDistanceTo(otherCampObjective) + 250)
+				else if ((hero->GetDistanceTo(campBeingAttacked) <= hero->GetDistanceTo(otherCampObjective) + 300)
 					&& enemyHero->GetArmySize() - hero->GetArmySize() <= creepDifferenceAllowed
 					&& enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() <= healthPercentDifferenceAllowed
 					&& enemyHero->GetLevel() - hero->GetLevel() <= levelDifferenceAllowed && hero->GetPlayerHealthAsDecimal() > healthPercentRequired)

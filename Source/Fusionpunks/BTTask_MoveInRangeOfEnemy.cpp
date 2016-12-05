@@ -57,6 +57,7 @@ void UBTTask_MoveInRangeOfEnemy::TickTask(UBehaviorTreeComponent& OwnerComp, uin
 
 			else if (ability2 != nullptr &&  ability2->CanUse())
 			{
+				OwnerComp.GetAIOwner()->StopMovement();
 				ability2->Use();
 			}
 		}
@@ -65,6 +66,7 @@ void UBTTask_MoveInRangeOfEnemy::TickTask(UBehaviorTreeComponent& OwnerComp, uin
 		{
 			if (ability0 != nullptr && ability0->CanUse())
 			{
+				OwnerComp.GetAIOwner()->StopMovement();
 				ability0->Use();
 			}
 		}

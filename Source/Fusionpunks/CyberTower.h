@@ -17,7 +17,7 @@ public:
 
 	ACyberTower();
 
-	void SpawnProjectiles() override;
+	void SpawnProjectiles(AActor* enemy) override;
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	

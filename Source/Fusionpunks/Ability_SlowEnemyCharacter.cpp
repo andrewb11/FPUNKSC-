@@ -27,6 +27,18 @@ bool AAbility_SlowEnemyCharacter::Ability()
 		{
 			//check if owner is facing the target
 
+			//Update Anim State Machine
+			AHeroBase* hero = Cast<AHeroBase>(GetOwner());
+			if (hero)
+			{
+				//Play Take Damage Aniamtion
+				
+				UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsSlow"));
+				if (boolProp)
+				{
+					boolProp->SetPropertyValue_InContainer(hero->GetMesh()->GetAnimInstance(), true);
+				}
+			}
 
 			//if facing the target spawn a slow over time effect on the enemy 
 			FActorSpawnParameters spawnParams;

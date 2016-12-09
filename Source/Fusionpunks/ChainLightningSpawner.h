@@ -25,7 +25,6 @@ public:
 		int32 maxHits = 5;
 	UPROPERTY(EditDefaultsOnly, Category = DamageStats)
 		float range = 750.0f;
-	UPROPERTY(EditDefaultsOnly, Category = DamageStats)
-		float damage = 20.0f;
+
 
 };

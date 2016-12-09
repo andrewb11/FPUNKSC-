@@ -98,10 +98,8 @@ void AChainLightning::TriggerEnter(class UPrimitiveComponent* ThisComp, class AA
 			CheckForNearbyEnemies();
 			hasBeenTriggered = true;
 			FDamageEvent DamageEvent;
-			if (lightningSpawner != nullptr && lightningSpawner->damage > 0)
-			{
-				OtherActor->TakeDamage(lightningSpawner->damage, DamageEvent, Instigator->GetController(), Instigator);
-			}
+			OtherActor->TakeDamage(damage, DamageEvent, Instigator->GetController(), Instigator);
+			
 		}
 	}	
 }

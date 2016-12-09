@@ -21,6 +21,9 @@ public:
 	virtual void Tick( float DeltaSeconds ) override;
 
 private:	
+	UPROPERTY(EditDefaultsOnly, Category = Variables)
+		float HealPercentagePerTick;
+
 	UPROPERTY(EditDefaultsOnly)
 		UStaticMeshComponent* meshComp;
 	

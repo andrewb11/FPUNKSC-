@@ -28,7 +28,6 @@ void ADashAbility::Tick(float DeltaSeconds)
 
 bool ADashAbility::Ability()
 {
-	UE_LOG(LogTemp, Warning, TEXT("DASHING"));
 	AHeroBase* hero = Cast<AHeroBase>(GetOwner());
 	if (hero)
 	{

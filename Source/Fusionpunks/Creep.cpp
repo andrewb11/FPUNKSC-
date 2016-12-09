@@ -87,15 +87,15 @@ void ACreep::BeginPlay()
 		{
 			//AiController = Cast<ACreepAIController>(GetWorld()->SpawnActor<ACreepAIController>(AIControllerClass));
 			//AiController->Possess(this);
-			AiController->GetBlackboardComponent()->SetValueAsObject(TEXT("SelfPawn"), this);
+			AiController->GetBlackboardComponent()->SetValueAsObject(TEXT("SelfActor"), this);
 			AiController->AttachToActor(this, FAttachmentTransformRules::KeepRelativeTransform);
-			AiController->GetBlackboardComponent()->SetValueAsBool(TEXT("belongsToCamp"), bBelongsToCamp);
+			//AiController->GetBlackboardComponent()->SetValueAsBool(TEXT("belongsToCamp"), bBelongsToCamp);
 		}
 		
-		if (creepCampHome != nullptr)
+		/*if (creepCampHome != nullptr)
 		{
 			AiController->GetBlackboardComponent()->SetValueAsObject(TEXT("CreepCampHome"), creepCampHome);
-		}
+		}*/
 		localPlayer = Cast<AActor>(GetWorld()->GetFirstPlayerController()->GetCharacter());
 	}
 
@@ -141,7 +141,7 @@ void ACreep::Tick( float DeltaTime )
 			{
 				AiController->GetBlackboardComponent()->SetValueAsObject("EnemyTarget", nullptr);
 			}
-			SetToWalk();
+			//SetToWalk();
 		}
 	}
 
@@ -176,92 +176,109 @@ float ACreep::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, A
 {
 	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
 
-	//Play Take Damage Aniamtion
-	UBoolProperty* boolProp = FindField<UBoolProperty>(GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsDamaged?"));
-	if (boolProp)
+	if (currentHealth > 0)
 	{
-		boolProp->SetPropertyValue_InContainer(GetMesh()->GetAnimInstance(), true);
-		//bool meleeAttack = boolProp->GetPropertyValue_InContainer(GetMesh()->GetAnimInstance());
-		GetWorld()->GetTimerManager().SetTimer(takeDamageTimerHandle, this, &ACreep::StopTakingDamageAnim, 0.2f, false);
-	}
-
-	if (EnemyTarget == nullptr)
-	{
-		//NOTE::Could damage caused by chain lightning screw this up? 
-		EnemyTarget = DamageCauser;
+		currentHealth -= Damage;
+		//Play Take Damage Aniamtion
+		UBoolProperty* boolProp = FindField<UBoolProperty>(GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsDamaged?"));
+		if (boolProp)
+		{
+			boolProp->SetPropertyValue_InContainer(GetMesh()->GetAnimInstance(), true);
+			//bool meleeAttack = boolProp->GetPropertyValue_InContainer(GetMesh()->GetAnimInstance());
+			GetWorld()->GetTimerManager().SetTimer(takeDamageTimerHandle, this, &ACreep::StopTakingDamageAnim, 0.2f, false);
+		}
+		//check of creep has an enemy target
 		ACreepAIController* AiController = Cast<ACreepAIController>(GetController());
-
-		if (AiController != nullptr)
+		if (AiController)
 		{
-			AiController->GetBlackboardComponent()->SetValueAsObject("EnemyTarget", EnemyTarget);
-			SetToRun();
-			AiController->RestartBehaviorTree();
-		}
-
-	}
-	currentHealth -= Damage;
-
-	if (Damage < 10000000 && !DamageCauser->ActorHasTag("AI") && !DamageCauser->ActorHasTag("Creep") && !DamageCauser->ActorHasTag("Tower") && FloatingDamageWidgetClass)
-	{
-		APlayerController* playerController = Cast<APlayerController>(EventInstigator);
-		if (playerController)
-		{
-			UFloatingDamageWidget* floatingDamageWidget = CreateWidget<UFloatingDamageWidget>(playerController, FloatingDamageWidgetClass);
-			//floatingDamageWidget->SetAlignmentInViewport(FVector2D::FVector2D(0.5f, 0.5f));
-			floatingDamageWidget->SetIncDamage(Damage);
-			floatingDamageWidget->SetOwningActor(this);
-			floatingDamageWidget->AddToPlayerScreen();
-		}	
-	}
-	
-	if (currentHealth <= 0)
-	{
-		//random to see which dying sound we should play
-		if (DyingSounds.Num() > 0 && !DamageCauser->ActorHasTag("AI") && Cast<AHeroBase>(DamageCauser))
-		{
-			int random = FMath::RandRange(0, DyingSounds.Num() - 1);
-			AFusionpunksGameState* gameState = Cast<AFusionpunksGameState>(UGameplayStatics::GetGameState(GetWorld()));
-			if (gameState)
+			if (AiController->GetBlackboardComponent()->GetValueAsObject("EnemyTarget") == nullptr)
 			{
-				UGameplayStatics::PlaySoundAtLocation(gameState->Players[0], DyingSounds[random], GetActorLocation());
-			}
-		}
-	
-		bIsDead = true; 
-		GetCapsuleComponent()->bGenerateOverlapEvents = false; 
-		GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		agroRadiusSphere->bGenerateOverlapEvents = false; 
-		widgetComponent->SetVisibility(false);
-
-		ACreepAIController* AiController = Cast<ACreepAIController>(GetController());
-		if (IsValid(AiController))
-		{
-			//Unpossess and destroy the controller
-			AiController->UnPossess();
-			AiController->Destroy();
-		}
-		GetMesh()->SetSimulatePhysics(true);
-		FlameMesh->DestroyComponent();
-		GetWorld()->GetTimerManager().SetTimer(destroyCreepTimerHandle, this, &ACreep::KillCreep, 5.0f, false);
-
-		if (DamageCauser->IsA(AHeroBase::StaticClass()) && !DamageCauser->Tags.Contains(team))
-		{
-			AHeroBase* hero = Cast<AHeroBase>(DamageCauser);
-			if (hero)
-			{
-				hero->AddToExperience(XPKillReward);
+				AiController->GetBlackboardComponent()->SetValueAsObject("EnemyTarget", DamageCauser);
 			}
 		}
 
-		if (bBelongsToCamp && creepCampHome != nullptr)
+		if (Damage < 10000000 && DamageCauser->IsA(AHeroBase::StaticClass()) && !DamageCauser->ActorHasTag("AI") && FloatingDamageWidgetClass)
 		{
-			creepCampHome->RemoveCreep(this);
+			APlayerController* playerController = Cast<APlayerController>(EventInstigator);
+			if (playerController)
+			{
+				UFloatingDamageWidget* floatingDamageWidget = CreateWidget<UFloatingDamageWidget>(playerController, FloatingDamageWidgetClass);
+				floatingDamageWidget->SetIncDamage(Damage);
+				floatingDamageWidget->SetOwningActor(this);
+				floatingDamageWidget->Instigator = DamageCauser;
+				floatingDamageWidget->AddToPlayerScreen();
+			}
 		}
-		else if (!bBelongsToCamp && playerToFollow)
+
+		if (currentHealth <= 0)
 		{
-			playerToFollow->RemoveCreepFromArmy(this);
+			if (GetWorld()->GetName().Contains("TestLevel"))
+			{
+				FOutputDeviceNull ar;
+				CallFunctionByNameWithArguments(TEXT("CreepDead"), ar, NULL, true);
+			}
+			
+			//random to see which dying sound we should play
+			if (DyingSounds.Num() > 0 && !DamageCauser->ActorHasTag("AI") && Cast<AHeroBase>(DamageCauser))
+			{
+				int random = FMath::RandRange(0, DyingSounds.Num() - 1);
+				AFusionpunksGameState* gameState = Cast<AFusionpunksGameState>(UGameplayStatics::GetGameState(GetWorld()));
+				if (gameState)
+				{
+					UGameplayStatics::PlaySoundAtLocation(gameState->Players[0], DyingSounds[random], GetActorLocation());
+				}
+			}
+
+			bIsDead = true;
+			GetCapsuleComponent()->bGenerateOverlapEvents = false;
+			GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			agroRadiusSphere->bGenerateOverlapEvents = false;
+			widgetComponent->SetVisibility(false);
+
+			ACreepAIController* AiController = Cast<ACreepAIController>(GetController());
+			if (IsValid(AiController))
+			{
+				//Unpossess and destroy the controller
+				AiController->UnPossess();
+				AiController->Destroy();
+			}
+			if (bSimPhysicsOnDeath)
+			{
+				GetMesh()->SetSimulatePhysics(true);
+			}
+			else
+			{
+				//play death animation
+				if (DeathAnimation)
+				{
+					//if doesn't work use montage instead
+					GetMesh()->PlayAnimation(DeathAnimation, false);
+				}
+			}
+			
+			FlameMesh->DestroyComponent();
+			GetWorld()->GetTimerManager().SetTimer(destroyCreepTimerHandle, this, &ACreep::KillCreep, 5.0f, false);
+
+			if (DamageCauser->IsA(AHeroBase::StaticClass()) && !DamageCauser->Tags.Contains(team))
+			{
+				AHeroBase* hero = Cast<AHeroBase>(DamageCauser);
+				if (hero)
+				{
+					hero->AddToExperience(XPKillReward);
+				}
+			}
+
+			if (bBelongsToCamp && creepCampHome != nullptr)
+			{
+				creepCampHome->RemoveCreep(this);
+			}
+			else if (!bBelongsToCamp && playerToFollow)
+			{
+				playerToFollow->RemoveCreepFromArmy(this);
+			}
+			//this->Destroy();
 		}
-		//this->Destroy();
+		return Damage;
 	}
 	return Damage;
 }
@@ -329,20 +346,19 @@ void ACreep::MoveRight(float Value)
 UFUNCTION()
 void ACreep::OnOverlapBegin(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
-	//if we are a neutral creep attack enemy targets 
-	if(EnemyTarget == nullptr && OtherActor->Tags.Contains(team) == false)
+	ACreepAIController* AiController = Cast<ACreepAIController>(GetController());
+	if (AiController)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Creep Entered Player Trigger!"));
-		EnemyTarget = OtherActor;
-		SetToRun();
-		ACreepAIController* AiController = Cast<ACreepAIController>(GetController());
-		if (AiController)
+		if (AiController->GetBlackboardComponent()->GetValueAsObject("EnemyTarget") == nullptr && !OtherActor->Tags.Contains(team))
 		{
-			AiController->GetBlackboardComponent()->SetValueAsObject("EnemyTarget", EnemyTarget);
-			AiController->GetBlackboardComponent()->SetValueAsBool("AtTargetPosition", false);
-			AiController->GetBlackboardComponent()->SetValueAsBool("hasWaited", true);
-			AiController->GetBlackboardComponent()->SetValueAsObject("SelfActor", this);
-			AiController->RestartBehaviorTree();
+			//UE_LOG(LogTemp, Warning, TEXT("Creep Entered Player Trigger!"));
+			//SetToRun();
+
+			AiController->GetBlackboardComponent()->SetValueAsObject("EnemyTarget", OtherActor);
+			//AiController->GetBlackboardComponent()->SetValueAsBool("AtTargetPosition", false);
+			//AiController->GetBlackboardComponent()->SetValueAsBool("hasWaited", true);
+			//AiController->GetBlackboardComponent()->SetValueAsObject("SelfActor", this);
+			//AiController->RestartBehaviorTree();
 		}
 	}
 }
@@ -352,10 +368,10 @@ UFUNCTION()
 void ACreep::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	//UE_LOG(LogTemp, Warning, TEXT("Creep Exited Trigger!"));
-	if (EnemyTarget == OtherActor)
+	/*if (EnemyTarget == OtherActor)
 	{
 		ClearEnemyTarget();
-	}
+	}*/
 }
 
 float ACreep::MeleeAttack()
@@ -572,3 +588,5 @@ void ACreep::Detonate()
 		AExplosion* explosion = GetWorld()->SpawnActor<AExplosion>(ExplosionClass, GetMesh()->GetComponentLocation(), FRotator::ZeroRotator, spawnParams);
 	}
 }
+
+

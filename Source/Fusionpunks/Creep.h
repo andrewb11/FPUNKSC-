@@ -24,7 +24,13 @@ public:
 	FORCEINLINE float GetHealthAsDecimal() const  { return currentHealth / maxHealth; }
 
 	UFUNCTION(BlueprintCallable, Category = Stats)
+	FORCEINLINE float GetCurrentHealth() const { return currentHealth; }
+
+	UFUNCTION(BlueprintCallable, Category = Stats)
 		void LevelUp();
+
+	UPROPERTY(EditDefaultsOnly, Category = Variables)
+		bool bSimPhysicsOnDeath = true; 
 
 //editable stats 
 protected:
@@ -95,6 +101,7 @@ protected:
 
 //Damage stuff
 public:
+	UFUNCTION(BlueprintCallable, Category = CreepFunctions)
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 protected:
@@ -127,6 +134,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 	USphereComponent* agroRadiusSphere; 
 public:
+
 	UFUNCTION(BlueprintCallable, Category = CampVariables)
 		FORCEINLINE float GetPatrolRadius() const { return patrolRadius; }
 
@@ -169,6 +177,7 @@ public:
 	void JoinPlayerArmy(class AHeroBase* PlayerToFollow, int SlotAssignment);
 	int slotAssignment;
 	void SetPlayerToFollow(class AHeroBase* Hero) { playerToFollow = Hero; }
+	UFUNCTION(BlueprintCallable, Category = CreepFunctions)
 	void SetEnemyTarget(AActor* enemy);
 
 	//For Possess Enemy Creep Ability 
@@ -210,4 +219,7 @@ protected:
 
 		UPROPERTY(EditDefaultsOnly, Category = Explosion)
 			TSubclassOf<class AExplosion> ExplosionClass;
+
+		UPROPERTY(EditDefaultsOnly, Category = Animations)
+			UAnimSequence* DeathAnimation;
 };

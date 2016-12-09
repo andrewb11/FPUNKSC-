@@ -70,6 +70,22 @@ public:
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
+	UFUNCTION(BlueprintCallable, Category = HeroFunctions)
+	virtual void InitializeHUD();
+
+	UFUNCTION(BlueprintCallable, Category = HeroFunctions)
+		 void ShowUseTowerWidget();
+	UFUNCTION(BlueprintCallable, Category = HeroFunctions)
+		void HideUseTowerWidget();
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = UI)
+		TSubclassOf<UUserWidget> UseTowerWidgetClass;
+
+	UUserWidget* TowerWidget;
+
+
+
 public:
 	UFUNCTION(BlueprintCallable, Category = HeroFunctions)
 		FORCEINLINE float GetPlayerHealthAsDecimal() const { return currentHealth / maxHealth; }
@@ -168,19 +184,37 @@ public:
 	FORCEINLINE void SetInsideHealingWell(bool status) {bInsideHealingWell = status;}
 	FORCEINLINE bool InsideHealingWell() const { return bInsideHealingWell; }
 	FORCEINLINE bool IsCreepAttacking() const { return bCreepIsAttacking; }
-	FORCEINLINE bool IsHeroAttacking() const { return bHeroIsAttacking; } 
+	FORCEINLINE bool IsHeroAttacking() const { return bHeroIsAttacking; }
 	FORCEINLINE void SetCreepAttacking(bool status) { bCreepIsAttacking = status; }
 	FORCEINLINE void SetHeroAttacking(bool status)  { bHeroIsAttacking = status; }
 	FORCEINLINE class ACreep* GetAttackingCreep() const { return attackingCreep; }
-	//FORCEINLINE class ABase* GetEnemyBaseDoor() const { return enemyBase; }
+	//FORCEINLINE class ABase* GetEnemyBase() const { return enemyBase; }
 	FORCEINLINE TArray<class ATowerBase*> GetTeamTowers() const { return teamTowers; }
 	FORCEINLINE int32 NumEnemyBaseTowers() const { return  enemyBaseTowers.Num(); }
+	void RemoveEnemyBaseTower(AActor* tower);
+	
 	void AddToCapturedCamps(class ACreepCamp* camp);
 	void RemoveFromCapturedCamps(class ACreepCamp* camp);
 	void UpdateHeroStats();
 	void SetIsCapturing(bool status, class ACreepCamp* camp);
-	void RemoveEnemyBaseTower(AActor* tower);
 
+	UPROPERTY(BlueprintReadWrite, Category = Variables)
+		bool bTurretCloseBy = false;
+
+	UFUNCTION(BlueprintCallable, Category = HeroFunctions)
+		void SetNearbyTurret(class ATurret* NearbyTurret) { nearbyTurret = NearbyTurret; }
+
+	bool bIsHidden;
+
+protected:
+	class ATurret* nearbyTurret;
+	virtual void PossessTurret();
+
+	UPROPERTY(EditDefaultsOnly, Category = UI)
+		TSubclassOf<UUserWidget> InTurretWidgetClass;
+
+	UUserWidget* InTurretWidget;
+	
 protected:
 	//AI HERO STUFFS
 	class ACreepCamp* campBeingCaptured;
@@ -197,9 +231,8 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = AIStuff)
 		TSubclassOf<class ATowerBase> enemyBaseTowerClass;
 
-	
 	TArray<AActor*> enemyBaseTowers;
-	
+
 	AActor *enemyBaseDoor, *enemyBaseReactor;
 
 	class ARespawnOverTime* respawnEffect;
@@ -220,8 +253,6 @@ protected:
 
 	class ACreep* attackingCreep = nullptr;
 
-	
-
 	TArray<class ATowerBase*> teamTowers;
 
 
@@ -234,9 +265,6 @@ protected:
 	UFUNCTION()
 		void OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-	UFUNCTION()
-		void OnCapsuleComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
-
 	UPROPERTY(EditDefaultsOnly, Category = CollisionComponents)
 		USphereComponent* sphereTrigger;
 
@@ -248,6 +276,8 @@ protected:
 	 UPROPERTY(EditDefaultsOnly)
 		 TSubclassOf<ACreepCamp> creepCampClass;
 public:
+	UFUNCTION(BlueprintCallable, Category = HeroFunctions)
+		void SetTeam(FName newTeam) { team = newTeam; }
 	FORCEINLINE FName GetTeam() const { return team; }
 	virtual void RecruitCreep();
 
@@ -266,7 +296,6 @@ public:
 	ACreep* GetClosestEnemyCreep();
 	bool CheckForNearbyCreepsInArmy();
 	bool CheckForNearbyEnemyTowers();
-	bool FarEnemyHeroCheck();
 	void AIRecruited();
 	bool bJustRecruited = false;
 	FORCEINLINE TArray<class ACreep*> GetNearbyEnemyCreeps() const { return nearbyEnemyCreeps; }
@@ -275,7 +304,6 @@ public:
 	FORCEINLINE class ACreepCamp* GetNearbyEnemyCamp() const { return nearbyEnemyCamp; }
 	FORCEINLINE class ATowerBase* GetNearbyEnemyTower() const { return nearbyEnemyTower; }
 	FORCEINLINE bool HasJustRecruited() const { return bJustRecruited; }
-
 
 private:
 	//AIHERO
@@ -357,6 +385,8 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = HeroCombat)
 		bool bIsAttacking = false;
+
+	bool bIsThrowingCreep = false;
 
 	virtual void UseAbility0();
 	virtual void UseAbility1();
@@ -453,15 +483,10 @@ protected:
 public:
 	virtual void OnRespawn() { check(0 && "You must override this function!") }
 
+	UPROPERTY(BlueprintReadWrite, Category = HeroVariables)
+		bool bHeroDead = false; 
 
-
-//protected:
-////Creep Command Functions
-//	virtual AActor* CreepCommand_Attack_CheckTarget(FVector Direction);
-//	virtual void CreepCommand_AttackTarget();
-//	TArray<FOverlapResult> creepCommand_TargetResults;
-//	void UnHighlightCreepArmyTarget(AActor* enemy);
-//	void HighlightCreepArmyTarget(AActor* enemy, TArray<FOverlapResult> enemies);
-//	int8 commandAttackCount;
+	UFUNCTION(BlueprintCallable, Category = HeroFunctions)
+		void ReviveCharacter(float HealthPercentage);
 
 };

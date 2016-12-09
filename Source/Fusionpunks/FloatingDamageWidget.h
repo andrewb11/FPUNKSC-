@@ -13,18 +13,16 @@ class FUSIONPUNKS_API UFloatingDamageWidget : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	//virtual void NativeConstruct() override;
-	//virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
-
 	void SetIncDamage(float Damage) { incDamage = Damage; }
 
-	/*UFUNCTION(BlueprintCallable, Category = Animations)
-		void PlayTextFloatUpAnimation();*/
 	UFUNCTION(BlueprintCallable, Category = WidgtFunctions)
 		void SetOwningActor(AActor* Owner) { OwningActor = Owner; }
 
 	UFUNCTION(BlueprintCallable, Category = WidgtFunctions)
 		AActor* GetOwningActor() const { return OwningActor; }
+
+	UPROPERTY(BlueprintReadWrite, Category = FloatingDamageWidgetVariables)
+	AActor* Instigator;
 
 private:
 	UFUNCTION(BlueprintCallable, Category = Combat)
@@ -32,5 +30,6 @@ private:
 	
     float incDamage;
 	AActor* OwningActor;
+	
 	
 };

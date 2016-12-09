@@ -101,6 +101,7 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 	else if (movementAbility != nullptr &&  movementAbility->CanUse())
 	{
+		/*
 		FRotator lookAtTargetRotation;
 		if (campGoal != EReasonForGoingToCamp::RGC_DefendingBase)
 		{
@@ -113,6 +114,7 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 		lookAtTargetRotation.Pitch = 0;
 		hero->SetActorRotation(lookAtTargetRotation);
+		*/
 		OwnerComp.GetAIOwner()->StopMovement();
 		movementAbility->Use();
 	}

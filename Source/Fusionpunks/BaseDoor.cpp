@@ -53,7 +53,7 @@ void ABaseDoor::AfterFracture(const FVector& in, const FVector& out)
 	UE_LOG(LogTemp, Warning, TEXT("AFTER FRACTURE FUNCTION"));
 	//destructMesh->SetCollisionObjectType(DestroyedDoor);
 	destructMesh->SetCollisionProfileName("DestroyedDoor");
-	destructMesh->UpdateCollisionProfile();
+	//destructMesh->UpdateCollisionProfile();
 	//destructMesh->SetCollisionResponseToChannel(Hero, ECollisionResponse::ECR_Ignore);
 
 }

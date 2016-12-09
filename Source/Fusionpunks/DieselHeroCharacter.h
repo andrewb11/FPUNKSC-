@@ -17,16 +17,12 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime) override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
 
 protected:
 	virtual void LevelUp() override;
 	
 	UPROPERTY(EditDefaultsOnly)
 		UStaticMeshComponent* WeaponMesh;
-
-	UFUNCTION()
-		void OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "AbilityEffects")
@@ -47,6 +43,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 		UBoxComponent* HammerCollisionTrigger;
 public:
+	UFUNCTION(BlueprintCallable, Category = HeroFunctions)
+		virtual void InitializeHUD() override;
+
 	virtual void MeleeAttack() override;
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = MeleeAtatck)
@@ -67,6 +66,7 @@ public:
 	virtual void OnRespawn() override;
 
 
-
+protected:
+	virtual void PossessTurret() override;
 };
 

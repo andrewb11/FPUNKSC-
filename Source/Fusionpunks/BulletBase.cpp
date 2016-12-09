@@ -17,6 +17,10 @@ ABulletBase::ABulletBase()
 	bulletMeshComponent->SetSimulatePhysics(false);
 	RootComponent = bulletMeshComponent;
 
+	bulletTrigger = CreateDefaultSubobject<UCapsuleComponent>("BulletTrigger");
+	bulletTrigger->AttachToComponent(bulletMeshComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	bulletTrigger->OnComponentBeginOverlap.AddDynamic(this, &ABulletBase::OnOverlapBegin);
+
 	projectileMovementComp = CreateDefaultSubobject<UProjectileMovementComponent>("ProjectileMovementComponent");
 
 	particleSystemComp = CreateDefaultSubobject<UParticleSystemComponent>("ParticleSystemComponent");
@@ -32,12 +36,11 @@ void ABulletBase::BeginPlay()
 {
 	Super::BeginPlay();
 
-	bulletMeshComponent->OnComponentHit.AddDynamic(this, &ABulletBase::OnBulletHit);
 	
-	if(IsValid(GetOwner()))
+	/*if(IsValid(GetOwner()))
 	{
 		projectileMovementComp->SetVelocityInLocalSpace(GetOwner()->GetActorForwardVector() * speed);
-	}
+	}*/
 }
 
 // Called every frame
@@ -46,19 +49,23 @@ void ABulletBase::Tick( float DeltaTime )
 	Super::Tick( DeltaTime );	
 }
 
-void ABulletBase::OnBulletHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+void ABulletBase::OnOverlapBegin(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
-	ACreep* creep = Cast<ACreep>(GetOwner());
-	AHeroBase* hero = Cast<AHeroBase>(GetOwner());
-
-	if (creep)
+	if (OtherActor->IsA(ACreep::StaticClass()))
 	{
-		if (!OtherActor->Tags.Contains(creep->GetTeam()))
+		//UE_LOG(LogTemp, Warning, TEXT("Hit Creep!"));
+		ACreep* creep = Cast<ACreep>(OtherActor);
+		if (creep)
 		{
-			OtherActor->TakeDamage(damage, FDamageEvent::FDamageEvent(), creep->GetController(), creep);
-			return;
+			if(!ActorHasTag(creep->GetTeam()))
+			{
+				OtherActor->TakeDamage(damage, FDamageEvent::FDamageEvent(), GetOwner()->GetInstigatorController(), GetOwner());
+				Destroy();
+			}
 		}
 	}
+	
+	/*AHeroBase* hero = Cast<AHeroBase>(GetOwner());
 	if (hero)
 	{
 		if (!OtherActor->Tags.Contains(hero->GetTeam()))
@@ -66,7 +73,16 @@ void ABulletBase::OnBulletHit(UPrimitiveComponent* HitComponent, AActor* OtherAc
 			OtherActor->TakeDamage(damage, FDamageEvent::FDamageEvent(), hero->GetController(), hero);
 			return; 
 		}
-	}
+	}*/
 	
+}
+
+void ABulletBase::Fire(float Speed, FVector Direction)
+{
+	//UE_LOG(LogTemp, Warning, TEXT("Direction is: %s"), Direction.ToString());
+	//projectileMovementComp->SetVelocityInLocalSpace(Direction * Speed);
+	//projectileMovementComp->Velocity = Direction * Speed;
+	projectileMovementComp->SetVelocityInLocalSpace(Speed * FVector::ForwardVector);
+	projectileMovementComp->UpdateComponentVelocity();
 }
 

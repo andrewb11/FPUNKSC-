@@ -11,20 +11,20 @@ class FUSIONPUNKS_API ABulletBase : public AActor
 	GENERATED_BODY()
 	
 public:	
-	// Sets default values for this actor's properties
 	ABulletBase();
-
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	
-	// Called every frame
 	virtual void Tick( float DeltaSeconds ) override;
 
 	FORCEINLINE float GetBulletSpeed() const { return speed; }
 
+	void Fire(float Speed, FVector Direction);
+
 protected:
 	UPROPERTY(EditDefaultsOnly)
 		UStaticMeshComponent* bulletMeshComponent; 
+
+	UPROPERTY(EditDefaultsOnly)
+		UCapsuleComponent* bulletTrigger;
 
 	UPROPERTY(EditDefaultsOnly, Category = Stats)
 		float damage;
@@ -39,5 +39,5 @@ protected:
 		UParticleSystemComponent* particleSystemComp;
 
 	UFUNCTION()
-	void OnBulletHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+		void OnOverlapBegin(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
 };

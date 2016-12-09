@@ -15,6 +15,7 @@
 #include "PlayerCompassWidget.h"
 #include "CreepFormation.h"
 #include "HealOverTime.h"
+#include "Turret.h"
 #include "AbilityBase.h"
 #include "FusionpunksGameState.h"
 #include "BulletBase.h"
@@ -66,9 +67,6 @@ AHeroBase::AHeroBase()
 	
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
-
-	//dust particle system class 
-	//static ConstructorHelpers::FObjectFinder<AActor> dustPS(TEXT("ParticleSystem'/Game/ParticleEffects/Stomp_Smoke.Stomp_Smoke'"));
 
 	//create & Set sphere trigger for capturing the camp
 	sphereTrigger = CreateDefaultSubobject<USphereComponent>(TEXT("TriggerCollider"));
@@ -146,17 +144,11 @@ void AHeroBase::BeginPlay()
 
 	GetCapsuleComponent()->OnComponentBeginOverlap.AddDynamic(this, &AHeroBase::OnOverlapBegin);
 	GetCapsuleComponent()->OnComponentEndOverlap.AddDynamic(this, &AHeroBase::OnOverlapEnd);
-	//GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &AHeroBase::OnCapsuleComponentHit);
 	
 	GetWorld()->GetAuthGameMode()->Children.Add(this);
 
 	startingLocation = GetActorLocation();
 	
-	/*if (Cast<UPlayerCompassWidget>(widgetComponent->GetUserWidgetObject()))
-	{
-		UPlayerCompassWidget* thisPlayerCompassWidget = Cast<UPlayerCompassWidget>(widgetComponent->GetUserWidgetObject());
-		thisPlayerCompassWidget->SetOwningHero(this);
-	}*/
 	heroStats = new HeroStats(this);
 	heroStats->DisplayStats();
 	LinkToCreepCamps();
@@ -191,8 +183,7 @@ void AHeroBase::BeginPlay()
 
 		if (baseDoors.Num() == 1)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("Found Enemy Base Door!!!!"));
-			enemyBaseDoor = baseDoors[0];	
+			enemyBaseDoor = baseDoors[0];
 		}
 
 		TArray<AActor*> baseReactors;
@@ -205,6 +196,7 @@ void AHeroBase::BeginPlay()
 		}
 
 		heroAI->LinkEnemyBaseProps(enemyBaseDoor, enemyBaseReactor);
+
 		TArray<AActor*> towersInGame;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), towerClass, towersInGame);
 		for (int i = 0; i < towersInGame.Num(); i++)
@@ -213,11 +205,10 @@ void AHeroBase::BeginPlay()
 
 		}
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), enemyBaseTowerClass, enemyBaseTowers);
-	
+		
 		//UE_LOG(LogTemp, Error, TEXT("Found %d towers"), teamTowers.Num());
 	}
 
-	//Initialize Player HUD
 	if (!ActorHasTag("AI"))
 	{
 		APlayerController* controller = Cast<APlayerController>(GetController());
@@ -238,7 +229,6 @@ void AHeroBase::BeginPlay()
 	if(GetCharacterMovement())
 		DefaultMaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 
-	
 }
 
 // Called every frame
@@ -251,23 +241,6 @@ void AHeroBase::Tick( float DeltaTime )
 	{
 		RestoreWalkSpeed();
 	}
-
-	/*if (Tags.Contains("Cyber"))
-	{
-		UE_LOG(LogTemp, Warning, TEXT("current experience is: %i"), currentExperience);
-	}*/
-	//UMaterialInstance* material = Cast<UMaterialInstance>(compassDecalComponent->GetDecalMaterial());
-	//if (material)
-	//{
-	//	material->Para
-	//	if (material->VectorParameterValues.Num() > 0)
-	//	{
-	//		material->VectorParameterValues[0].ParameterValue.R = 1 - GetPlayerHealthAsDecimal();
-	//		material->VectorParameterValues[0].ParameterValue.G = GetPlayerHealthAsDecimal();
-	//		material->VectorParameterValues[0].ParameterValue.B = 0;
-	//			//FLinearColor(1 - GetPlayerHealthAsDecimal(), GetPlayerHealthAsDecimal(), 0, 1.0f);
-	//	}
-	//}
 }
 
 // Called to bind functionality to input
@@ -277,13 +250,8 @@ void AHeroBase::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 	// Set up gameplay key bindings
 	check(InputComponent);
 
-	//InputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
-	//InputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
-
 	InputComponent->BindAxis("MoveForward", this, &AHeroBase::MoveForward);
 	InputComponent->BindAxis("MoveRight", this, &AHeroBase::MoveRight);
-
-	//Attack
 	
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
@@ -296,12 +264,10 @@ void AHeroBase::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 	InputComponent->BindAxis("CameraZoom", this, &AHeroBase::AdjustCameraZoom);
 
 	InputComponent->BindAction("RecruitCreep", IE_Pressed, this, &AHeroBase::RecruitCreep);
-	//InputComponent->BindAction("CreepCommandAttack", IE_Pressed, this, &AHeroBase::CreepCommand_AttackTarget);
 
 	InputComponent->BindAction("AICamera", IE_Pressed, this, &AHeroBase::SwapAICamera);
 
-	//InputComponent->BindAction("SacrificeCreep", IE_Pressed, this, &AHeroBase::SacrificeCreep);
-//	InputComponent->BindAction("MeleeAttack", IE_Pressed, this, &AHeroBase::MeleeAttack);
+	InputComponent->BindAction("PossessTurret", IE_Pressed, this, &AHeroBase::PossessTurret);
 
 	InputComponent->BindAction("Ability1", IE_Pressed, this, &AHeroBase::UseAbility0);
 	InputComponent->BindAction("Ability2", IE_Pressed, this, &AHeroBase::UseAbility1);
@@ -310,8 +276,6 @@ void AHeroBase::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 	InputComponent->BindAction("Ability5", IE_Pressed, this, &AHeroBase::UseAbility4);
 
 	InputComponent->BindAction("MeleeAttack", IE_Pressed, this, &AHeroBase::MeleeAttack);
-
-	//InputComponent->BindAction("RangedAttack", IE_Pressed, this, &AHeroBase::RangedAttack);
 }
 void AHeroBase::TurnAtRate(float Rate)
 {
@@ -351,6 +315,39 @@ void AHeroBase::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
+	}
+}
+
+void AHeroBase::InitializeHUD()
+{
+	APlayerController* controller = Cast<APlayerController>(GetController());
+	if (controller)
+	{
+		if (!playerHealthBarWidget)
+		{
+			playerHealthBarWidget = CreateWidget<UPlayerHealthBarWidget>(controller, playerHealthBarWidgetClass);
+			playerHealthBarWidget->AddToPlayerScreen();
+		}
+		else
+		{
+			playerHealthBarWidget->SetVisibility(ESlateVisibility::Visible);
+		}
+		
+		if (GetWorld()->GetName().Contains(TEXT("GameMap")))
+		{
+			if (!campProgressWidget)
+			{
+				campProgressWidget = CreateWidget<UCampProgressWidget>(controller, campProgressWidgetClass);
+				campProgressWidget->AddToPlayerScreen();
+				campProgressWidget->SetVisibility(ESlateVisibility::Hidden);
+			}
+			if (!gameTimerWidget)
+			{
+				gameTimerWidget = CreateWidget<UGameTimerWidget>(controller, gameTimerWidgetClass);
+				gameTimerWidget->AddToPlayerScreen(1);
+			}
+		}
+		
 	}
 }
 
@@ -463,7 +460,6 @@ bool AHeroBase::CheckForNearbyCreepsInArmy()
 	}
 
 	return nearbyCreepsInArmy.Num() > 0;
-
 }
 
 
@@ -566,13 +562,12 @@ bool AHeroBase::CheckForNearbyEnemyTowers()
 				if ((ActorHasTag("Cyber") && Results[i].Actor->ActorHasTag("Diesel"))
 					|| (ActorHasTag("Diesel") && Results[i].Actor->ActorHasTag("Cyber")))
 					nearbyEnemyTower = Cast<ATowerBase>(Results[i].GetActor());
-
 			}
 		}
-
 	}
 
 	return nearbyEnemyTower != nullptr;
+	
 }
 
 bool AHeroBase::CheckForNearbyInteractions()
@@ -594,7 +589,7 @@ bool AHeroBase::CheckForNearbyInteractions()
 	obejctQP.AddObjectTypesToQuery(Creeps);
 	obejctQP.AddObjectTypesToQuery(DamageableStructures);
 	//Overlap multi by channel as a sphere (for pick ups?)
-	
+
 	//QueryParameters.OwnerTag = TEXT("Player");
 
 	TArray<FOverlapResult> Results;
@@ -610,21 +605,20 @@ bool AHeroBase::CheckForNearbyInteractions()
 	nearbyEnemyHero = nullptr;
 	nearbyEnemyCamp = nullptr;
 	nearbyEnemyTower = nullptr;
-	
-	if (Results2.Num()  == 1)
+
+	if (Results2.Num() == 1)
 	{
 		if (Results2[0].GetActor()->IsA(AHeroBase::StaticClass()))
 		{
 			nearbyEnemyHero = Cast<AHeroBase>(Results2[0].GetActor());
 		}
-		
 	}
 
 	if (Results.Num() > 0)
 	{
 		for (int32 i = 0; i < Results.Num(); i++)
-		{			
-			 if (Results[i].GetActor()->IsA(ACreepCamp::StaticClass()))
+		{
+			if (Results[i].GetActor()->IsA(ACreepCamp::StaticClass()))
 			{
 
 				ACreepCamp* currCamp = Cast<ACreepCamp>(Results[i].GetActor());
@@ -657,8 +651,6 @@ bool AHeroBase::CheckForNearbyInteractions()
 
 			else if (Results[i].GetActor()->IsA(ACreep::StaticClass()))
 			{
-
-
 				if (team.Compare("Diesel") == 0 && !Results[i].GetActor()->ActorHasTag("Diesel"))
 				{
 					nearbyEnemyCreeps.Add(Cast<ACreep>(Results[i].GetActor()));
@@ -672,19 +664,14 @@ bool AHeroBase::CheckForNearbyInteractions()
 
 			else if (Results[i].GetActor()->IsA(ATowerBase::StaticClass()))
 			{
-
 				if ((ActorHasTag("Cyber") && Results[i].Actor->ActorHasTag("Diesel"))
 					|| (ActorHasTag("Diesel") && Results[i].Actor->ActorHasTag("Cyber")))
 				{
 					nearbyEnemyTower = Cast<ATowerBase>(Results[i].GetActor());
 					UE_LOG(LogTemp, Display, TEXT("FOUND NEARBY ENEMY TOWER"));
 				}
-
 			}
-
-
 		}
-
 	}
 	return nearbyOwnedCreepCamps.Num() > 0 || nearbyEnemyHero != nullptr || nearbyEnemyCreeps.Num() > 0 || nearbyEnemyCamp != nullptr || nearbyEnemyTower != nullptr;
 }
@@ -735,8 +722,6 @@ bool AHeroBase::CheckForNearbyOnwedCreepCamps()
 
 void AHeroBase::StartAttack()
 {
-	//UE_LOG(LogTemp, Display, TEXT("Basic Attack PRESSED"));
-
 	AActor *closestEnemy;
 
 	FCollisionObjectQueryParams obejctQP;
@@ -816,7 +801,6 @@ void AHeroBase::Attack(AActor* enemy)
 
 void AHeroBase::AdjustCameraZoom(float Value)
 {
-	
 	if (Value < 0 && FollowCamera->FieldOfView >= 90)
 	{
 		//UE_LOG(LogTemp, Display, TEXT("Zooming Camera Down"));
@@ -861,14 +845,8 @@ void AHeroBase::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* O
 				campProgressWidget->SetVisibility(ESlateVisibility::Hidden);
 			}
 		}
-
 		SetIsCapturing(false, visitingCamp);
 	}
-}
-
-void AHeroBase::OnCapsuleComponentHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	UE_LOG(LogTemp, Warning, TEXT("Hero was hit by something"));
 }
 
 void AHeroBase::LevelUp()
@@ -906,81 +884,103 @@ void AHeroBase::LevelUp()
 			gameState->DieselLevelUp();
 		}
 	}
-	
 }
 
 float AHeroBase::TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) 
 {
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
-	currentHealth -= DamageAmount;
 
-	UE_LOG(LogTemp, Log, TEXT("Hero took %f damage."), DamageAmount);
-	//FOR AI HERO
-	if (ActorHasTag("AI") && DamageCauser->IsA(AHeroBase::StaticClass()))
-		bHeroIsAttacking = true;
-
-	else if (ActorHasTag("AI") && DamageCauser->IsA(ACreep::StaticClass()) && !bCreepIsAttacking)
+	if (currentHealth > 0)
 	{
-		bCreepIsAttacking = true;
-		attackingCreep = Cast<ACreep>(DamageCauser);
-	}
+		currentHealth -= DamageAmount;
 
-	if (!DamageCauser->ActorHasTag("AI") && !DamageCauser->ActorHasTag("Creep") && !DamageCauser->ActorHasTag("Projectile") &&  FloatingDamageWidgetClass)
-	{
-		APlayerController* controller = Cast<APlayerController>(EventInstigator);
-		if (controller)
+		//UE_LOG(LogTemp, Log, TEXT("Hero took %f damage."), DamageAmount);
+		//FOR AI HERO
+		if (ActorHasTag("AI") && DamageCauser->IsA(AHeroBase::StaticClass()))
+			bHeroIsAttacking = true;
+
+		else if (ActorHasTag("AI") && DamageCauser->IsA(ACreep::StaticClass()) && !bCreepIsAttacking)
 		{
-			UFloatingDamageWidget* floatingDamageWidget = CreateWidget<UFloatingDamageWidget>(controller, FloatingDamageWidgetClass);
-			//floatingDamageWidget->SetAlignmentInViewport(FVector2D::FVector2D(0.5f, 0.5f));
-			floatingDamageWidget->SetIncDamage(DamageAmount);
-			floatingDamageWidget->SetOwningActor(this);
-			floatingDamageWidget->AddToPlayerScreen();
-		}
-		
-	}
-
-	FLinearColor materialColor = FLinearColor::FLinearColor(1 - GetPlayerHealthAsDecimal(), GetPlayerHealthAsDecimal(), 0, 1.0f);
-	compassDecalMaterialDynamic->SetVectorParameterValue("Base_Colour", materialColor);
-
-	if (currentHealth <= 0 && !bIsRespawning)
-	{
-		bIsRespawning = true;
-		AHeroBase* hero = Cast<AHeroBase>(DamageCauser);
-		if (hero)
-		{
-			UE_LOG(LogTemp, Log, TEXT("%i experence rewarded"), XPKillReward);
-			hero->AddToExperience(XPKillReward);
-		}
-		compassDecalComponent->bVisible = 0;
-		compassDecalComponent->MarkRenderStateDirty();
-
-		currentHealth = 0;
-		APlayerController* playerController = Cast<APlayerController>(GetController());
-		if (playerController)
-		{
-			DisableInput(playerController);		
+			bCreepIsAttacking = true;
+			attackingCreep = Cast<ACreep>(DamageCauser);
 		}
 
-		StopAnimMontage(GetCurrentMontage());
-		
-		GetMesh()->SetVisibility(false);
-		OnDeath();
-		
-		
-		//SetActorEnableCollision(false);
-		respawnEffect->StartTimer(respawnTime, this);
+		if (!DamageCauser->ActorHasTag("AI") && !DamageCauser->ActorHasTag("Creep") && !DamageCauser->ActorHasTag("Projectile") && FloatingDamageWidgetClass)
+		{
+			APlayerController* controller = Cast<APlayerController>(EventInstigator);
+			if (controller)
+			{
+				UFloatingDamageWidget* floatingDamageWidget = CreateWidget<UFloatingDamageWidget>(controller, FloatingDamageWidgetClass);
+				//floatingDamageWidget->SetAlignmentInViewport(FVector2D::FVector2D(0.5f, 0.5f));
+				floatingDamageWidget->SetIncDamage(DamageAmount);
+				floatingDamageWidget->SetOwningActor(this);
+				floatingDamageWidget->AddToPlayerScreen();
+			}
 
-		if (ActorHasTag("AI"))
-		{
-			UGameplayStatics::PlaySound2D(this, Announcer_EnemyHeroDestroyed);
 		}
-		else
+
+		FLinearColor materialColor = FLinearColor::FLinearColor(1 - GetPlayerHealthAsDecimal(), GetPlayerHealthAsDecimal(), 0, 1.0f);
+		compassDecalMaterialDynamic->SetVectorParameterValue("Base_Colour", materialColor);
+
+		if (currentHealth <= 0 && !bIsRespawning)
 		{
-			UGameplayStatics::PlaySound2D(this, Announcer_PlayerHeroDestroyed);
+			if (GetWorld()->GetName().Contains("TestLevel"))
+			{
+				bHeroDead = true;
+				FOutputDeviceNull ar;
+				CallFunctionByNameWithArguments(TEXT("HeroDead"), ar, NULL, true);
+
+				//Play Death Animation && Disable Input
+				APlayerController* playerController = Cast<APlayerController>(Controller);
+				if (playerController)
+				{
+					DisableInput(playerController);
+				}
+			}
+			else
+			{
+				bIsRespawning = true;
+				AHeroBase* hero = Cast<AHeroBase>(DamageCauser);
+				if (hero)
+				{
+					UE_LOG(LogTemp, Log, TEXT("%i experence rewarded"), XPKillReward);
+					hero->AddToExperience(XPKillReward);
+				}
+				compassDecalComponent->bVisible = 0;
+				compassDecalComponent->MarkRenderStateDirty();
+
+				currentHealth = 0;
+				APlayerController* playerController = Cast<APlayerController>(GetController());
+				if (playerController)
+				{
+					DisableInput(playerController);
+				}
+
+				StopAnimMontage(GetCurrentMontage());
+
+				GetMesh()->SetVisibility(false);
+				OnDeath();
+
+				bTurretCloseBy = false;
+				nearbyTurret = nullptr;
+
+
+				//SetActorEnableCollision(false);
+				respawnEffect->StartTimer(respawnTime, this);
+
+				if (ActorHasTag("AI"))
+				{
+					UGameplayStatics::PlaySound2D(this, Announcer_EnemyHeroDestroyed);
+				}
+				else
+				{
+					UGameplayStatics::PlaySound2D(this, Announcer_PlayerHeroDestroyed);
+				}
+			}
 		}
+		return DamageAmount;
 	}
 	return DamageAmount;
-
 }
 
 void AHeroBase::RecruitCreep()
@@ -1421,10 +1421,82 @@ bool AHeroBase::CheckIfTowerIsBeingAttacked()
 	return false;
 }
 
+void AHeroBase::ShowUseTowerWidget()
+{
+	if (!TowerWidget && UseTowerWidgetClass)
+	{
+		APlayerController* playerController = Cast<APlayerController>(GetController());
+		if(playerController)
+		{
+			TowerWidget = CreateWidget<UUserWidget>(playerController, UseTowerWidgetClass);
+			TowerWidget->AddToPlayerScreen();
+			return;
+		}
+	}
+
+	TowerWidget->SetVisibility(ESlateVisibility::Visible);
+
+}
+
+void AHeroBase::HideUseTowerWidget()
+{
+	TowerWidget->SetVisibility(ESlateVisibility::Hidden);
+}
+//NOTE::Brendon - Add sound when possessing Turret 
+void AHeroBase::PossessTurret()
+{
+	if (nearbyTurret)
+	{
+		playerHealthBarWidget->SetVisibility(ESlateVisibility::Hidden);
+		TowerWidget->SetVisibility(ESlateVisibility::Hidden);
+		//switch possession to turret and give it a reference to the hero to possess when finished using
+		nearbyTurret->SetOwningHero(this);
+		Controller->Possess(nearbyTurret);
+		//spawn widget for turret
+		if (InTurretWidgetClass)
+		{
+			APlayerController* controller = Cast<APlayerController>(Controller);
+			if (controller)
+			{
+				controller->SetViewTargetWithBlend(nearbyTurret);
+				if (InTurretWidgetClass)
+				{
+					InTurretWidget = CreateWidget<UUserWidget>(controller, InTurretWidgetClass);
+					InTurretWidget->AddToPlayerScreen();
+				}
+			}
+		}
+		//hide character
+		bIsHidden = true;
+		SetActorHiddenInGame(true);
+	}
+}
+
 void AHeroBase::RemoveEnemyBaseTower(AActor* tower)
 {
 	if (enemyBaseTowers.Contains(tower))
 		enemyBaseTowers.Remove(tower);
 }
+
+void AHeroBase::ReviveCharacter(float HealthPercentage)
+{
+	bHeroDead = false;
+
+	APlayerController* playerController = Cast<APlayerController>(Controller);
+	//Play Death Animation && Disable Input
+	if (playerController)
+	{
+		EnableInput(playerController);
+	}
+	//set health
+	currentHealth = maxHealth * HealthPercentage;
+	//update health decal 
+	FLinearColor materialColor = FLinearColor::FLinearColor(1 - GetPlayerHealthAsDecimal(), GetPlayerHealthAsDecimal(), 0, 1.0f);
+	compassDecalMaterialDynamic->SetVectorParameterValue("Base_Colour", materialColor);
+
+	LevelUpParticleSystem->Activate(true);
+}
+
+
 
 

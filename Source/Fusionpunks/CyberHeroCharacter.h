@@ -14,9 +14,6 @@ class ACyberHeroCharacter: public AHeroBase
 public:
 	ACyberHeroCharacter();
 
-	// APawn interface
-	virtual void SetupPlayerInputComponent(class UInputComponent* InputComponent) override;
-	// End of APawn interface
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaTime);
 
@@ -32,16 +29,11 @@ private:
 
 
 public:
-	//void DetermineClickEvent();
-	//virtual void UseAbility1() override;
-	//void UseSkill(AActor* enemy);
 	void AddAffectedActor(AActor* enemy);
 	bool IsAffected(AActor* enemy);
 	void HighlightTarget(AActor* enemy, TArray<FOverlapResult> enemies);
 	void UnHighlightTarget(AActor* enemy);
-	void UnHighlightAll(TArray<FOverlapResult> enemies);
-	//AActor* UpdateTarget();
-	
+	void UnHighlightAll(TArray<FOverlapResult> enemies);	
 
 //Skill Target related
 private:
@@ -64,6 +56,8 @@ protected:
 public:
 	virtual void OnRespawn() override;
 	
+	UFUNCTION(BlueprintCallable, Category = HeroFunctions)
+	virtual void InitializeHUD() override;
 	
 	virtual void MeleeAttack() override;
 //Melee Attack Stuff
@@ -85,5 +79,8 @@ protected:
 
 public:
 	virtual void ChainCombo() override; 
+
+protected:
+	virtual void PossessTurret() override;
 };
 

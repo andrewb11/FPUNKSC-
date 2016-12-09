@@ -44,11 +44,30 @@ void ACyberHeroCharacter::BeginPlay()
 void ACyberHeroCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+}
 
-	//if (skillSelected) 
-	//{
-	//	UpdateTarget();
-	//}
+void ACyberHeroCharacter::InitializeHUD()
+{
+	Super::InitializeHUD();
+
+	if (UIWidgetClass && !ActorHasTag(TEXT("AI")))
+	{
+		APlayerController* controller = Cast<APlayerController>(GetController());
+		if (controller)
+		{
+			if (!UIWidget)
+			{
+				UIWidget = CreateWidget<UProphetUIWidget>(controller, UIWidgetClass);
+				UIWidget->SetOwningCharacter(this);
+				UIWidget->AddToPlayerScreen();
+			}
+			else
+			{
+				UIWidget->SetVisibility(ESlateVisibility::Visible);
+			}
+			
+		}
+	}
 }
 
 void ACyberHeroCharacter::MeleeAttack()
@@ -58,8 +77,7 @@ void ACyberHeroCharacter::MeleeAttack()
 	
 	if (!bIsAttacking)
 	{
-		//stop character movement
-		GetCharacterMovement()->MaxWalkSpeed = 0;
+		GetCharacterMovement()->MaxWalkSpeed *= 0.25f;
 
 		bIsAttacking = true;
 
@@ -71,13 +89,11 @@ void ACyberHeroCharacter::MeleeAttack()
 	{
 		bChainAttack = true; 
 	}
-	
 }
 
 
 void ACyberHeroCharacter::ChainCombo()
 {
-	//UE_LOG(LogTemp, Warning, TEXT("ChainCombo!!!"));
 	if (bChainAttack)
 	{
 		bChainAttack = false;
@@ -123,139 +139,6 @@ void ACyberHeroCharacter::ChainCombo()
 }
 
 
-
-//////////////////////////////////////////////////////////////////////////
-// Input
-
-void ACyberHeroCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
-{
-	// Set up gameplay key bindings
-	Super::SetupPlayerInputComponent(InputComponent);
-	check(InputComponent);
-
-	//InputComponent->BindAction("MeleeAttack", IE_Pressed, this, &ACyberHeroCharacter::MeleeAttack);
-	//InputComponent->BindAction("Skill1", IE_Pressed, this, &ACyberHeroCharacter::OnSkillPressed);
-}
-
-
-//void ACyberHeroCharacter::DetermineClickEvent()
-//{
-//	if (skillSelected)
-//	{
-//		AActor* currentTarget = UpdateTarget();
-//		if (currentTarget != NULL)
-//		{
-//			UseSkill(currentTarget);
-//			UnHighlightTarget(currentTarget);
-//			skillSelected = false;
-//		}
-//	}
-//}
-
-
-//AActor* ACyberHeroCharacter::UpdateTarget()
-//{
-//	//UE_LOG(LogTemp, Display, TEXT("Skill Used"));
-//	if (oldTargetResults.Num() > 0)
-//	{
-//		UnHighlightAll(oldTargetResults);
-//	}
-//
-//	AActor *closestEnemy;
-//	FCollisionObjectQueryParams obejctQP;
-//	obejctQP.AddObjectTypesToQuery(Creeps);
-//	obejctQP.AddObjectTypesToQuery(Hero);
-//	//obejctQP.AddObjectTypesToQuery()
-//	//Overlap multi by channel as a sphere (for pick ups?)
-//
-//	FCollisionQueryParams QueryParameters;
-//	QueryParameters.AddIgnoredActor(this);
-//	QueryParameters.OwnerTag = TEXT("Player");	
-//	GetWorld()->OverlapMultiByObjectType(skillTargetResults,
-//		GetActorLocation(),
-//		FQuat(),
-//		obejctQP,
-//		FCollisionShape::MakeSphere(750),
-//		QueryParameters);
-//	oldTargetResults = skillTargetResults;
-//	
-//	if (skillTargetResults.Num() == 0)
-//	{
-//		UE_LOG(LogTemp, Display, TEXT("No Units Nearby"));
-//		return NULL;
-//	}
-//	else
-//	{
-//		UE_LOG(LogTemp, Display, TEXT("Unit Found"));
-//
-//		TArray<AActor*> enemies;
-//		for (int i = 0; i < skillTargetResults.Num(); i++)
-//		{
-//			if (!skillTargetResults[i].GetActor()->ActorHasTag("Cyber"))
-//			{
-//				enemies.Add(skillTargetResults[i].GetActor());
-//			}
-//		}
-//
-//		if (enemies.Num() > 0)
-//		{
-//			closestEnemy = enemies[0];
-//
-//			for (int i = 0; i < enemies.Num(); i++)
-//			{
-//				if (GetDistanceTo(enemies[i]) <= GetDistanceTo(closestEnemy))
-//				{
-//					closestEnemy = enemies[i];
-//				}
-//			}
-//
-//			HighlightTarget(closestEnemy, skillTargetResults);
-//			return closestEnemy;
-//		}
-//			UE_LOG(LogTemp, Display, TEXT("No Enemies Nearby"));
-//			return NULL;
-//	}
-//}
-
-//void ACyberHeroCharacter::UseAbility1()
-//{
-//
-//	if (!skillSelected)
-//	{
-//		skillSelected = true;
-//	}
-//	else 
-//	{
-//		skillSelected = false;
-//		AActor* currentTarget = UpdateTarget();
-//
-//		if (currentTarget != NULL)
-//		{
-//			UnHighlightTarget(currentTarget);
-//		}
-//	}
-//}
-//
-//void ACyberHeroCharacter::UseSkill(AActor* enemy)
-//{
-//
-//	FActorSpawnParameters spawnParams;
-//	spawnParams.Owner = this; 
-//	spawnParams.Instigator = this;
-//
-//	FVector spawnLoc;
-//	spawnLoc = GetActorLocation();
-//	spawnLoc.Z = spawnLoc.Z + 200;
-//   	AChainLightning* lightning =  GetWorld()->SpawnActor
-//		<AChainLightning>(chainLightningAbility,
-//		spawnLoc,
-//		FRotator::ZeroRotator, spawnParams);
-//	lightning->AddAffectedActor(enemy);
-//	lightning->SetBeamPoints(Cast<AActor>(this), enemy);
-//	lightning->Use();
-//
-//}
-
 void ACyberHeroCharacter::AddAffectedActor(AActor* enemy)
 {
 	affectedActors.Add(enemy);
@@ -280,7 +163,6 @@ void ACyberHeroCharacter::HighlightTarget(AActor* enemy, TArray<FOverlapResult> 
 	{
 		Cast<ACharacter>(enemy)->GetMesh()->SetRenderCustomDepth(true);
 		Cast<ACharacter>(enemy)->GetMesh()->CustomDepthStencilValue = STENCIL_ENEMY_OUTLINE;
-		
 	}
 
 	for (int i = 0; i < enemies.Num(); i++)
@@ -289,7 +171,6 @@ void ACyberHeroCharacter::HighlightTarget(AActor* enemy, TArray<FOverlapResult> 
 		{
 			Cast<ACharacter>(enemies[i].GetActor())->GetMesh()->SetRenderCustomDepth(false);
 		}
-
 	}
 }
 
@@ -327,12 +208,11 @@ void ACyberHeroCharacter::LevelUp()
 
 void ACyberHeroCharacter::OnSwordComponentOverlap(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Sword Component Hit!"));
-
-	//if creep and not on our team OR is an AI enemy
-	if (bIsAttacking && !OtherActor->Tags.Contains(team))
+	if (bIsAttacking && !OtherActor->ActorHasTag(team))
 	{
-		OtherActor->TakeDamage(basicAttackDamage, FDamageEvent::FDamageEvent(), GetController(), this);
+		//randomize damage by 100
+		float random = FMath::RandRange(0, 100);
+		OtherActor->TakeDamage(basicAttackDamage + random, FDamageEvent::FDamageEvent(), GetController(), this);
 	}
 }
 
@@ -344,4 +224,11 @@ void ACyberHeroCharacter::OnDeath()
 void ACyberHeroCharacter::OnRespawn()
 {
 	SwordMeshComp->SetVisibility(true);
+}
+
+void ACyberHeroCharacter::PossessTurret()
+{
+	Super::PossessTurret();
+
+	UIWidget->SetVisibility(ESlateVisibility::Hidden);
 }

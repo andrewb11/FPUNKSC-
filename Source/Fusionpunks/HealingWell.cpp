@@ -51,7 +51,7 @@ void AHealingWell::TriggerEnter(class UPrimitiveComponent* ThisComp, class AActo
 		{
 			healingParticleEffect->Activate(true);
 			hero->SetInsideHealingWell(true);
-			healingEffect->SetTotalHealthValue(50,0.1);
+			healingEffect->SetTotalHealthValue(hero->GetMaxHealth() * HealPercentagePerTick,0.1);
 			healingEffect->StartTimer(0.1, OtherActor);
 		}
 

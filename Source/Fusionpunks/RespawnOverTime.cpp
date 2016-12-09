@@ -28,6 +28,7 @@ void ARespawnOverTime::ApplyEffect()
 	hero->RestoreWalkSpeed();
 	hero->bIsAttacking = false; 
 	hero->OnRespawn();
+	hero->bHeroDead = false; 
 
 	APlayerController* playerController = Cast<APlayerController>(hero->GetController());
 	if (playerController)

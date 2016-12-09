@@ -14,7 +14,6 @@ ADieselHeroCharacter::ADieselHeroCharacter()
 	currentHealth = maxHealth;
 	basicAttackDamage = 10;
 
-	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ADieselHeroCharacter::OnHit);
 	respawnTime = 1;
 
 	WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
@@ -49,22 +48,26 @@ void ADieselHeroCharacter::BeginPlay()
 void ADieselHeroCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Input
-void ADieselHeroCharacter::SetupPlayerInputComponent(class UInputComponent* InputComponent)
+void ADieselHeroCharacter::InitializeHUD()
 {
-	// Set up gameplay key bindings
-	Super::SetupPlayerInputComponent(InputComponent);
-	// Set up gameplay key bindings
-	//InputComponent->BindAction("MeleeAttack", IE_Pressed, this, &ADieselHeroCharacter::MeleeAttack);
-}
+	Super::InitializeHUD();
 
-void ADieselHeroCharacter::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	
+	if (UIWidgetClass && !ActorHasTag(TEXT("AI")))
+	{
+		APlayerController* controller = Cast<APlayerController>(GetController());
+		if (controller)
+		{
+			UIWidget = CreateWidget<URankUIWidget>(controller, UIWidgetClass);
+			UIWidget->SetOwningCharacter(this);
+			UIWidget->AddToPlayerScreen();
+		}
+		else
+		{
+			UIWidget->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
 }
 
 void ADieselHeroCharacter::LevelUp()
@@ -87,70 +90,14 @@ void ADieselHeroCharacter::LevelUp()
 
 void ADieselHeroCharacter::OnHammerComponentOverlap(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("Sword Component Hit!"));
-
 	//if creep and not on our team OR is an AI enemy
-	if (bIsAttacking && !OtherActor->Tags.Contains(team))
+	if (bIsAttacking && !OtherActor->ActorHasTag(team))
 	{
-		OtherActor->TakeDamage(basicAttackDamage, FDamageEvent::FDamageEvent(), GetController(), this);
+		//randomize damage by 100
+		float random = FMath::RandRange(0, 100);
+		OtherActor->TakeDamage(basicAttackDamage + random, FDamageEvent::FDamageEvent(), GetController(), this);
 	}
 }
-
-//Change to include animations and work like prophets attack but with a hammer 
-//void ADieselHeroCharacter::MeleeAttack()
-//{
-//	//UE_LOG(LogTemp, Display, TEXT("Basic Attack PRESSED"));
-//
-//	AActor *closestEnemy;
-//
-//	FCollisionObjectQueryParams obejctQP;
-//	obejctQP.AddObjectTypesToQuery(Hero);
-//	obejctQP.AddObjectTypesToQuery(Creeps);
-//	obejctQP.AddObjectTypesToQuery(DamageableStructures);
-//	//Overlap multi by channel as a sphere (for pick ups?)
-//	FCollisionQueryParams QueryParameters;
-//	QueryParameters.AddIgnoredActor(this);
-//	QueryParameters.OwnerTag = TEXT("Player");
-//
-//	TArray<FOverlapResult> Results;
-//	GetWorld()->OverlapMultiByObjectType(Results,
-//		GetActorLocation(),
-//		FQuat(),
-//		obejctQP,
-//		FCollisionShape::MakeSphere(300.f),
-//		QueryParameters);
-//
-//	if (Results.Num() == 0) {
-//		UE_LOG(LogTemp, Display, TEXT("No Enemies Nearby"));
-//	}
-//	else
-//	{
-//		UE_LOG(LogTemp, Display, TEXT("Enemy Found"));
-//		closestEnemy = Results[0].GetActor();
-//		for (int i = 0; i < Results.Num(); i++)
-//		{
-//			if (GetDistanceTo(Results[i].GetActor()) <= GetDistanceTo(closestEnemy))
-//			{
-//				closestEnemy = Results[i].GetActor();
-//			}
-//
-//		}
-//		//check if they are on the same team as us or not
-//		if (!closestEnemy->ActorHasTag(team))
-//		{
-//			Attack(closestEnemy);
-//		}
-//	}
-//
-//	//UBoolProperty* boolProp = FindField<UBoolProperty>(GetMesh()->GetAnimInstance()->GetClass(), TEXT("MeleeAttacking"));
-//	//if (boolProp)
-//	//{
-//	//	bIsAttacking = true;
-//	//	boolProp->SetPropertyValue_InContainer(GetMesh()->GetAnimInstance(), true);
-//	//	//bool meleeAttack = boolProp->GetPropertyValue_InContainer(GetMesh()->GetAnimInstance());
-//	//	GetWorld()->GetTimerManager().SetTimer(attackTimerHandle, this, &AHeroBase::StopAttacking, 1.0f, false);
-//	//}
-//}
 
 void ADieselHeroCharacter::MeleeAttack()
 {
@@ -158,10 +105,10 @@ void ADieselHeroCharacter::MeleeAttack()
 	Super::MeleeAttack();
 	//stop character movement
 
-	if (!bIsAttacking)
+	if (!bIsAttacking && !bIsThrowingCreep)
 	{
 		GetCharacterMovement()->MaxWalkSpeed = 0;
-
+		
 		bIsAttacking = true;
 
 		PlayAnimMontage(MeleeAttackOne);
@@ -172,7 +119,6 @@ void ADieselHeroCharacter::MeleeAttack()
 	{
 		bChainAttack = true;
 	}
-
 }
 
 void ADieselHeroCharacter::ChainCombo()
@@ -224,5 +170,12 @@ void ADieselHeroCharacter::OnDeath()
 void ADieselHeroCharacter::OnRespawn()
 {
 	WeaponMesh->SetVisibility(true);
+}
+
+void ADieselHeroCharacter::PossessTurret()
+{
+	Super::PossessTurret();
+
+	UIWidget->SetVisibility(ESlateVisibility::Hidden);;
 }
 

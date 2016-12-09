@@ -13,6 +13,7 @@ enum class ECreepThrowState : uint8
 {
 	CTS_FindCreepToThrow UMETA(DisplayName = "NoCreepInHand"),
 	CTS_CreepInHand      UMETA(DisplayName = "CreepInHand"),
+	CTS_PreparingToThrow    UMETA(DisplayName = "PreparingToThrow")
 };
 
 UCLASS()
@@ -29,14 +30,30 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = Variables)
 		float rangeCheck;
+
 	UPROPERTY(EditDefaultsOnly, Category = Variables)
-		float upwardsLaunchForce;
+		float InitialUpwardsLaunchForce = 100.0f;
 	UPROPERTY(EditDefaultsOnly, Category = Variables)
-		float forwardLaunchForce;
+		float InitialForwardLaunchForce = 75.0f;
+
+	UPROPERTY(EditDefaultsOnly, Category = Variables)
+		float MaxUpwardsLaunchForce = 1600.0f;
+	UPROPERTY(EditDefaultsOnly, Category = Variables)
+		float MaxForwardLaunchForce = 2000.0f;
+
+	float upwardsLaunchForce;
+	float forwardLaunchForce;
+
+	UPROPERTY(EditDefaultsOnly, Category = Variables)
+		float ForwardLaunchIncreasePerFrame = 1.0f;
+	UPROPERTY(EditDefaultsOnly, Category = Variables)
+		float UpwardLaunchIncreasePerFrame = 1.0f;
+	
 	UPROPERTY(EditDefaultsOnly, Category = Variables)
 		float characterSlowPercent;
 	UPROPERTY(EditDefaultsOnly, Category = Variables)
 		float timeUntilDetonate = 3.0f;
+
 
 	UPROPERTY(EditDefaultsOnly, Category = BeamParticleSystem)
 		UParticleSystemComponent* particleSystemComp;

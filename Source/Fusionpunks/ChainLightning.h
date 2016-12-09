@@ -40,7 +40,8 @@ private:
 	AActor* source, *target;
 	UPROPERTY(EditAnywhere)
 		class UParticleSystemComponent* beam;
-
+	UPROPERTY(EditDefaultsOnly)
+		float damage;
 	UPROPERTY(EditAnywhere)
 		class UShapeComponent* boxCollider;
 	UPROPERTY(EditAnywhere)

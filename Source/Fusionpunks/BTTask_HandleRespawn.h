@@ -3,26 +3,22 @@
 #pragma once
 
 #include "BehaviorTree/BTTaskNode.h"
-#include "BTTask_ApproachBase.generated.h"
+#include "BTTask_HandleRespawn.generated.h"
 
 /**
  * 
  */
-
-
-
 UCLASS()
-class FUSIONPUNKS_API UBTTask_ApproachBase : public UBTTaskNode
+class FUSIONPUNKS_API UBTTask_HandleRespawn : public UBTTaskNode
 {
 	GENERATED_BODY()
+
 protected:
+
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory) override;
 
 	virtual void TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;
-
+	
 	class AHeroBase* hero;
-	class AHeroAIController* heroAI;
-	AActor* enemyBase;	
-	class ABaseDoor *enemyBaseDoor;
 	
 };

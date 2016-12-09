@@ -121,7 +121,7 @@ void UBTTask_AttackEnemyHero::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 			hero->SetActorRotation(lookAtTargetRotation);
 		}
 
-		if (hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(enemyCreep) > 300 || enemyCreep->GetHealthAsDecimal() <= 0)
+		if (hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->IsRespawning() ||hero->GetDistanceTo(enemyCreep) > 300 || enemyCreep->GetHealthAsDecimal() <= 0)
 		{
 			UE_LOG(LogTemp, Error, TEXT("STOP ATTACK Creep TIMER"));
 			enemyCreep = nullptr;
@@ -151,7 +151,7 @@ void UBTTask_AttackEnemyHero::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 			hero->SetActorRotation(lookAtTargetRotation);
 		}
 
-		if ((enemyTower->GetHpPercent() > 0.2f && hero->CheckForNearbyEnemyHero()) ||  hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(enemyTower) > 500 || enemyTower->GetHpPercent() <= 0)
+		if ((enemyTower->GetHpPercent() > 0.2f && hero->CheckForNearbyEnemyHero()) || hero->IsRespawning()||  hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(enemyTower) > 550|| enemyTower->GetHpPercent() <= 0)
 		{
 			UE_LOG(LogTemp, Error, TEXT("STOP ATTACK TOWER TIMER"));
 			enemyTower = nullptr;
@@ -181,7 +181,7 @@ void UBTTask_AttackEnemyHero::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 			hero->SetActorRotation(lookAtTargetRotation);
 		}
 
-		if ((enemyBaseDoor->GetHpPercent() > 0.2f && hero->CheckForNearbyEnemyHero()) || hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(enemyBaseDoor) > 500 || enemyBaseDoor->isDestroyed)
+		if ((enemyBaseDoor->GetHpPercent() > 0.2f && hero->CheckForNearbyEnemyHero()) || hero->IsRespawning()|| hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(enemyBaseDoor) > 175 || enemyBaseDoor->isDestroyed)
 		{
 			UE_LOG(LogTemp, Error, TEXT("STOP ATTACK base door TIMER"));
 			enemyBaseDoor = nullptr;
@@ -212,7 +212,7 @@ void UBTTask_AttackEnemyHero::TickTask(UBehaviorTreeComponent& OwnerComp, uint8*
 			hero->SetActorRotation(lookAtTargetRotation);
 		}
 
-		if ((enemyBaseReactor->GetHpPercent() > 0.2f && hero->CheckForNearbyEnemyHero()) || hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(enemyBaseReactor) > 500 || enemyBaseReactor->isDestroyed)
+		if ((enemyBaseReactor->GetHpPercent() > 0.2f && hero->CheckForNearbyEnemyHero()) || hero->IsRespawning()|| hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(enemyBaseReactor) > 360 || enemyBaseReactor->isDestroyed)
 		{
 			UE_LOG(LogTemp, Error, TEXT("STOP ATTACK base Reactor TIMER"));
 			enemyBaseReactor = nullptr;
@@ -334,7 +334,7 @@ void UBTTask_AttackEnemyHero::AttackCreepOnTimer()
 }
 void UBTTask_AttackEnemyHero::AttackTowerOnTimer()
 {
-	if (enemyTower == nullptr || hero->GetPlayerHealthAsDecimal() <= 0 || hero->bIsRespawning || hero->GetDistanceTo(enemyTower) > 500 || enemyTower->GetHpPercent() <= 0)
+	if (enemyTower == nullptr || hero->GetPlayerHealthAsDecimal() <= 0 || hero->bIsRespawning || hero->GetDistanceTo(enemyTower) > 550 || enemyTower->GetHpPercent() <= 0)
 	{
 		if (attackTimerHandle.IsValid())
 		{
@@ -356,7 +356,7 @@ void UBTTask_AttackEnemyHero::AttackBaseOnTimer()
 	if (targetType == ETargetType::TT_BaseDoor)
 	{
 		
-		if (enemyBaseDoor == nullptr || hero->GetPlayerHealthAsDecimal() <= 0 || hero->bIsRespawning || hero->GetDistanceTo(enemyBaseDoor) > 500 || enemyBaseDoor->isDestroyed)
+		if (enemyBaseDoor == nullptr || hero->GetPlayerHealthAsDecimal() <= 0 || hero->bIsRespawning || hero->GetDistanceTo(enemyBaseDoor) > 175 || enemyBaseDoor->isDestroyed)
 		{
 			if (attackTimerHandle.IsValid())
 			{
@@ -372,7 +372,7 @@ void UBTTask_AttackEnemyHero::AttackBaseOnTimer()
 
 	else if (targetType == ETargetType::TT_BaseReactor)
 	{
-		if (enemyBaseReactor == nullptr || hero->GetPlayerHealthAsDecimal() <= 0 || hero->bIsRespawning || hero->GetDistanceTo(enemyBaseReactor) > 500 || enemyBaseReactor->isDestroyed)
+		if (enemyBaseReactor == nullptr || hero->GetPlayerHealthAsDecimal() <= 0 || hero->bIsRespawning || hero->GetDistanceTo(enemyBaseReactor) > 360 || enemyBaseReactor->isDestroyed)
 		{
 			if (attackTimerHandle.IsValid())
 			{

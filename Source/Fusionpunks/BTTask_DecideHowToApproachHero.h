@@ -51,7 +51,9 @@ class FUSIONPUNKS_API UBTTask_DecideHowToApproachHero : public UBTTaskNode
 		float healthPercentDifferenceAllowed = 0.35f;
 	UPROPERTY(EditAnywhere)
 		int32  levelDifferenceAllowed = 5;
-
+	UPROPERTY(EditAnywhere)
+		bool bLastStandMode = false;
+	float chaseTimer = 0;
 	
 
 	

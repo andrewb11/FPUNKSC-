@@ -4,13 +4,14 @@
 #include "HeroBase.h"
 #include "CreepCamp.h"
 #include "HealingWell.h"
+#include "HeroTreeComponent.h"
 #include "HeroAIController.h"
 
 AHeroAIController::AHeroAIController()
 {
-	BehaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>(TEXT("BehaviorTreeComponent"));
+	BehaviorTreeComponent = CreateDefaultSubobject<UHeroTreeComponent>(TEXT("BehaviorTreeComponent"));
 	BlackboardComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComponent"));
-	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnsensingComponent"));
+	
 	
 /*	if (GetPawn()->ActorHasTag("Cyber"))
 		const ConstructorHelpers::FObjectFinder<UBehaviorTree> BTFinder(TEXT("BehaviorTree'/Game/Heroes/AI/HeroAI_Tree.HeroAI_Tree'"));

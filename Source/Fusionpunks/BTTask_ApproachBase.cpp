@@ -15,7 +15,7 @@ EBTNodeResult::Type UBTTask_ApproachBase::ExecuteTask(UBehaviorTreeComponent& Ow
 	if (hero != nullptr && heroAI != nullptr)
 	{
 
-		ABaseDoor *enemyBaseDoor  = Cast<ABaseDoor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("EnemyBaseDoor"));
+		enemyBaseDoor  = Cast<ABaseDoor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("EnemyBaseDoor"));
 
 		if (!enemyBaseDoor->isDestroyed)
 			enemyBase = Cast<AActor>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("EnemyBaseDoor"));
@@ -37,7 +37,7 @@ void UBTTask_ApproachBase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
 {
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
 
-	if (hero->CheckForNearbyInteractions())
+	if ((hero->GetDistanceTo(enemyBase) > 2500 && hero->CheckForNearbyInteractions()) || (hero->CheckForNearbyEnemyHero() || hero->CheckForNearbyEnemyTowers()))
 	{
 		OwnerComp.GetBlackboardComponent()->SetValueAsBool("FoundNearbyEnemyCamp", hero->GetNearbyEnemyCamp() != nullptr);
 		if (hero->GetNearbyEnemyCamp() != nullptr)
@@ -52,16 +52,55 @@ void UBTTask_ApproachBase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
 	else
 	{
 		//UE_LOG(LogTemp, Error, TEXT("Distance From Base Door %f"), hero->GetDistanceTo(enemyBase));
+		
 
-		if (hero->GetDistanceTo(enemyBase) >= 150)
+		if (!enemyBaseDoor->isDestroyed)
 		{
-			OwnerComp.GetAIOwner()->MoveToActor(enemyBase, 50, false, true, false);
+			if (hero->GetDistanceTo(enemyBase) >= 175)
+			{
+				UE_LOG(LogTemp, Error, TEXT("Distance From Base Door %f "), hero->GetDistanceTo(enemyBase));
+				OwnerComp.GetAIOwner()->MoveToActor(enemyBase, 100, false, true, false);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("IN RANGE OF ENEMY BASE"));
+				OwnerComp.GetBlackboardComponent()->SetValueAsObject("AttackTarget", enemyBase);
+				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+			}
 		}
+
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("IN RANGE OF ENEMY BASE"));
-			OwnerComp.GetBlackboardComponent()->SetValueAsObject("AttackTarget", enemyBase);
-			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+			if (hero->ActorHasTag("Diesel"))
+			{
+
+				if (hero->GetDistanceTo(enemyBase) >= 360)
+				{
+					UE_LOG(LogTemp, Error, TEXT("Distance From Base  Reactor %f"), hero->GetDistanceTo(enemyBase));
+					OwnerComp.GetAIOwner()->MoveToActor(enemyBase, 100, false, true, false);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("IN RANGE OF ENEMY BASE"));
+					OwnerComp.GetBlackboardComponent()->SetValueAsObject("AttackTarget", enemyBase);
+					FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+				}
+			}
+
+			else
+			{
+				if (hero->GetDistanceTo(enemyBase) >= 300)
+				{
+					UE_LOG(LogTemp, Error, TEXT("Distance From Base  Reactor %f"), hero->GetDistanceTo(enemyBase));
+					OwnerComp.GetAIOwner()->MoveToActor(enemyBase, 100, false, true, false);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Error, TEXT("IN RANGE OF ENEMY BASE"));
+					OwnerComp.GetBlackboardComponent()->SetValueAsObject("AttackTarget", enemyBase);
+					FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+				}
+			}
 		}
 	}
 }

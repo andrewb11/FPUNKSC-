@@ -21,9 +21,10 @@ protected:
 	class AAbilityBase* sacrificeCreepAbility, *dashAbility;
 
 	UPROPERTY(EditAnywhere)
-		float healthPercentageAbort = 0.3f;
+		float healthPercentageAbort = 0.21f;
 	UPROPERTY(EditAnywhere)
 		float healthPercentageDifference = 0.35f;
+	float movementAbilityDelay = 0;
 	
 	
 	

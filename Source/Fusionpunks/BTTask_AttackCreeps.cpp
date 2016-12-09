@@ -64,14 +64,14 @@ void UBTTask_AttackCreeps::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
 	}
 		
 				
-	if (target->GetHealthAsDecimal()<=0 || hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(target) > 300 )
+	if (target == nullptr || target->GetHealthAsDecimal()<=0 || hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(target) > 300 )
 	{
 		UE_LOG(LogTemp, Error, TEXT("STOP ATTACK TIMER"));
 		target = nullptr;
 		if (attackTimerHandle.IsValid())
 		{
 			GetWorld()->GetTimerManager().ClearTimer(attackTimerHandle);
-			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
+			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 		}
 	}
 }
@@ -85,7 +85,20 @@ void UBTTask_AttackCreeps::OnTaskFinished(UBehaviorTreeComponent & OwnerComp, ui
 }
 void UBTTask_AttackCreeps::AttackOnTimer() 
 {
-	if (hero->ActorHasTag("Cyber"))
+
+
+	if (target == nullptr || target->GetHealthAsDecimal() <= 0 || hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort || hero->GetDistanceTo(target) > 300)
+	{
+		UE_LOG(LogTemp, Error, TEXT("STOP ATTACK TIMER"));
+		target = nullptr;
+		if (attackTimerHandle.IsValid())
+		{
+			GetWorld()->GetTimerManager().ClearTimer(attackTimerHandle);
+
+		}
+	}
+
+	else if (hero->ActorHasTag("Cyber"))
 	{
 
 		if (ability0 != nullptr && ability0->CanUse())

@@ -37,15 +37,30 @@ void UBTTask_ApproachTower::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* N
 	{
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 	}
-
-	else if (hero->GetDistanceTo(attackTarget) > 500.0f)
+	if (hero->ActorHasTag("Cyber"))
 	{
-		OwnerComp.GetAIOwner()->MoveToActor(attackTarget, 100.0f, true, true, false);
-
+		if (hero->GetDistanceTo(attackTarget) > 550.0f)
+		{
+			OwnerComp.GetAIOwner()->MoveToActor(attackTarget, 150.0f, true, true, false);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("IN RANGE OF ENEMY TOWER"));
+			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+		}
 	}
+
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("IN RANGE OF ENEMY TOWER"));
-		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
-	}
+		
+			if (hero->GetDistanceTo(attackTarget) > 400.0f)
+			{
+				OwnerComp.GetAIOwner()->MoveToActor(attackTarget, 150.0f, true, true, false);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Error, TEXT("IN RANGE OF ENEMY TOWER"));
+				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+			}
+	 }
 }

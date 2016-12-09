@@ -145,7 +145,8 @@ bool ATowerBase::CheckForEnemyHero()
 
 	for (int i = 0; i < enemyUnits.Num(); i++)
 	{
-		if (enemyUnits[i]->IsA(AHeroBase::StaticClass()))
+		
+		if (!enemyUnits[i]->IsActorBeingDestroyed() && enemyUnits[i]->IsA(AHeroBase::StaticClass()))
 		{
 			foundHero = true;
 		}

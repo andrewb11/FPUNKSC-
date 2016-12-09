@@ -22,8 +22,8 @@ EBTNodeResult::Type UBTTask_HealAtHealingWell::ExecuteTask(UBehaviorTreeComponen
 void UBTTask_HealAtHealingWell::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
-
-	if (hero->GetCurrentHealth() == hero->GetMaxHealth())
+	UE_LOG(LogTemp, Error, TEXT("Heroes health, %f of %f"), hero->GetCurrentHealth(), hero->GetMaxHealth());
+	if (hero->GetCurrentHealth() >= hero->GetMaxHealth())
 	{
 		UE_LOG(LogTemp, Error, TEXT("FullyHealed"));
 		heroAI->ResetAITreeTaskStatus();

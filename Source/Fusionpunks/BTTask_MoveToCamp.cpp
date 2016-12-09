@@ -18,8 +18,8 @@ EBTNodeResult::Type UBTTask_MoveToCamp::ExecuteTask(UBehaviorTreeComponent& Owne
 	heroAI = Cast<AHeroAIController>(OwnerComp.GetAIOwner());
 	hero = Cast<AHeroBase>(OwnerComp.GetAIOwner()->GetPawn());
 	neutralCampExists = OwnerComp.GetBlackboardComponent()->GetValueAsBool("NeutralCampsExist");
+	requestMoveID = FAIRequestID(0);
 	
-
 
 	if (campGoal == EReasonForGoingToCamp::RGC_Capturing)
 	{
@@ -55,6 +55,7 @@ EBTNodeResult::Type UBTTask_MoveToCamp::ExecuteTask(UBehaviorTreeComponent& Owne
 	}
 	if (hero != nullptr)
 	{
+		//OwnerComp.GetAIOwner()->ResumeMove(FAIRequestID::AnyRequest);
 		heroStats = hero->GetHeroStats();
 		sacrificeCreepAbility = hero->GetAbility(4);
 		if (hero->ActorHasTag("Cyber"))
@@ -78,7 +79,7 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 	heroStats->UpdateStats();
 	
-
+	movementAbilityDelay += DeltaSeconds;
 	if ((campGoal!= EReasonForGoingToCamp::RGC_DefendingBase && campGoal != EReasonForGoingToCamp::RGC_Recruiting)  && hero->CheckIfTowerIsBeingAttacked())
 	{
 		OwnerComp.GetBlackboardComponent()->SetValueAsBool("BaseBeingAttacked", true);
@@ -99,10 +100,10 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 	
 
-	else if (movementAbility != nullptr &&  movementAbility->CanUse())
+	else if ( movementAbilityDelay >= 0.75f && movementAbility != nullptr &&  movementAbility->CanUse() && hero->SafeToJump() )
 	{
-		/*
-		FRotator lookAtTargetRotation;
+		
+		/*FRotator lookAtTargetRotation;
 		if (campGoal != EReasonForGoingToCamp::RGC_DefendingBase)
 		{
 			 lookAtTargetRotation = UKismetMathLibrary::FindLookAtRotation(hero->GetActorLocation(), targetCamp->GetActorLocation());
@@ -115,11 +116,10 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 		lookAtTargetRotation.Pitch = 0;
 		hero->SetActorRotation(lookAtTargetRotation);
 		*/
-		OwnerComp.GetAIOwner()->StopMovement();
+		
+		//OwnerComp.GetAIOwner()->PauseMove(FAIRequestID::AnyRequest);
 		movementAbility->Use();
 	}
-	
-
 
 
 	if (heroStats->GetHealthPercent() < healthPercentageAbort && campGoal != EReasonForGoingToCamp::RGC_Recruiting)

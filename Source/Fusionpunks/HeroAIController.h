@@ -4,11 +4,10 @@
 
 #include "AIController.h"
 #include "BehaviorTree/BehaviorTree.h"
-#include "BehaviorTree/BehaviorTreeComponent.h"
+#include "HeroTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "BehaviorTree/BehaviorTreeComponent.h"
 #include "CreepCamp.h"
-#include "Perception/PawnSensingComponent.h"
-
 #include "HeroAIController.generated.h"
 
 
@@ -89,7 +88,39 @@ class FUSIONPUNKS_API AHeroAIController : public AAIController
 {
 	GENERATED_BODY()
 
+
+protected:
+	class AHeroBase* enemyHero;
+
+	AActor *enemyBaseDoor, *enemyBaseReactor;
+
+	class ACreepCamp *campBeingAttacked, *homeCamp;
+
+	UPROPERTY(EditDefaultsOnly)
+		 UBehaviorTree* BehaviorTreeAsset;
+
+	UPROPERTY(EditDefaultsOnly)
+		 UHeroTreeComponent* BehaviorTreeComponent;
+
+	UPROPERTY(EditDefaultsOnly)
+		UBlackboardComponent* BlackboardComponent;
+
+	TArray<ACreepCamp*> creepCamps;
+
+	FPriorityList campPriorityList;
+	FPriorityList campOwnedPriorityList;
+
+
+
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<ACreepCamp> creepCampClass;
+
+	UPROPERTY(EditDefaultsOnly, Category = HomeBase)
+		TSubclassOf<class AHealingWell> baseClass;
+
+
 public:
+
 	AHeroAIController();
 	class AHeroBase* hero;
 	virtual void Possess(APawn* Pawn) override;
@@ -98,13 +129,9 @@ public:
 	TArray<ACreepCamp*> GetCreepCampList();
 	TArray<ACreepCamp*> GetSortedOwnedCampList();
 
-	
 
 	void LinkEnemyBaseProps(AActor* baseDoor, AActor* baseReactor);
-
 	//virtual void UpdateControlRotation(float DeltaTime, bool bUpdatePawn) override;
-
-
 	//UFUNCTION(BlueprintCallable, Category = Components)
 		//UBlackboardComponent* GetBlackboardComponent();
 	void ResetAITreeTaskStatus();
@@ -116,41 +143,11 @@ public:
 	FORCEINLINE class ACreepCamp* GetCampBeingAttacked() const  { return campBeingAttacked; }
 	FORCEINLINE int32 GetNumOwnedCamps() { return GetSortedOwnedCampList().Num(); }
 	FORCEINLINE class ACreepCamp* GetHomeCamp() const { return homeCamp; }
-protected:
-
+	FORCEINLINE void StopTree() { BehaviorTreeComponent->PauseTree();}
 	
+	FORCEINLINE void AbortTask() { BehaviorTreeComponent->AbortTask(); }
+    FORCEINLINE void ResumeTree() { BehaviorTreeComponent->ResumeTree(); }
 
-	class AHeroBase* enemyHero;
-
-	AActor *enemyBaseDoor, *enemyBaseReactor;
-
-	class ACreepCamp *campBeingAttacked, *homeCamp;
-
-	UPROPERTY(EditDefaultsOnly)
-		UBehaviorTree* BehaviorTreeAsset;
-
-	UPROPERTY(EditDefaultsOnly)
-		UBehaviorTreeComponent* BehaviorTreeComponent;
-
-	UPROPERTY(EditDefaultsOnly)
-		UBlackboardComponent* BlackboardComponent;
-
-
-	UPROPERTY(EditDefaultsOnly)
-		UPawnSensingComponent* PawnSensingComponent;
-
-		TArray<ACreepCamp*> creepCamps;
-		
-		FPriorityList campPriorityList;
-		FPriorityList campOwnedPriorityList;
-		
-
-
-	UPROPERTY(EditDefaultsOnly)
-			TSubclassOf<ACreepCamp> creepCampClass;
-	
-	UPROPERTY(EditDefaultsOnly, Category = HomeBase)
-		TSubclassOf<class AHealingWell> baseClass;
 
 
 	

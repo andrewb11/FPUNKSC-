@@ -32,6 +32,7 @@ protected:
 	class AHeroBase *hero, *enemyHero;
 	class AHeroAIController* heroAI;
 	class HeroStats* heroStats;
+	float movementAbilityDelay = 0;
 	bool neutralCampExists;
 	class AAbilityBase *sacrificeCreepAbility, *movementAbility;
 	UPROPERTY(EditAnywhere)
@@ -40,6 +41,6 @@ protected:
 		float healthPercentageAbort = 0.2f;
 	UPROPERTY(EditAnywhere)
 		int32 creepDifferenceAllowed = 5;
-
+	FAIRequestID requestMoveID;
 	AActor* baseStructure;
 };

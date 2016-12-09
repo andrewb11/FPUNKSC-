@@ -75,7 +75,7 @@ protected:
 		USphereComponent* HeroInRangeRadius;
 
 	UPROPERTY(EditDefaultsOnly, Category = Prefabs)
-		TSubclassOf<ABulletBase> BulletToSpawn;
+		TSubclassOf<class ABulletBase> BulletToSpawn;
 
 	UPROPERTY(EditDefaultsOnly, Category = Prefabs)
 		UCameraComponent* TurretCamera;

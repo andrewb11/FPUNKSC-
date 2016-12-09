@@ -148,37 +148,29 @@ void AChainLightning::CheckForNearbyEnemies()
 
 		if (enemies.Num() > 0)
 		{
-			closestEnemy = enemies[0];
-
 			for (int i = 0; i < enemies.Num(); i++)
 			{
-				if (GetDistanceTo(enemies[i]) <= GetDistanceTo(closestEnemy))
+				if (!affectedActors.Contains(enemies[i]) && affectedActors.Num() < lightningSpawner->maxHits)
 				{
-					closestEnemy = enemies[i];
+					UE_LOG(LogTemp, Display, TEXT("Found Unaffected NearbyEnemy"));
+					FVector spawnLoc;
+					spawnLoc = target->GetActorLocation();
+					spawnLoc.Z = spawnLoc.Z + 200;
+					FActorSpawnParameters spawnParams;
+					spawnParams.Instigator = Instigator;
+					AChainLightning* lightning = GetWorld()->SpawnActor
+						<AChainLightning>(chainLightningAbility,
+							spawnLoc,
+							FRotator::ZeroRotator, spawnParams);
+					for (int i = 0; i < affectedActors.Num(); i++)
+					{
+						lightning->AddAffectedActor(affectedActors[i]);
+					}
+					lightning->SetSpawner(lightningSpawner);
+					lightning->AddAffectedActor(closestEnemy);
+					lightning->SetBeamPoints(target, closestEnemy);
+					lightning->Use();
 				}
-			}
-
-
-			if (!affectedActors.Contains(closestEnemy) && affectedActors.Num() < lightningSpawner->maxHits)
-			{
-				UE_LOG(LogTemp, Display, TEXT("Found Unaffected NearbyEnemy"));
-				FVector spawnLoc;
-				spawnLoc = target->GetActorLocation();
-				spawnLoc.Z = spawnLoc.Z + 200;
-				FActorSpawnParameters spawnParams;
-				spawnParams.Instigator = Instigator;
-				AChainLightning* lightning = GetWorld()->SpawnActor
-					<AChainLightning>(chainLightningAbility,
-						spawnLoc,
-						FRotator::ZeroRotator,spawnParams);
-				for (int i = 0; i < affectedActors.Num(); i++)
-				{
-					lightning->AddAffectedActor(affectedActors[i]);
-				}
-				lightning->SetSpawner(lightningSpawner);
-				lightning->AddAffectedActor(closestEnemy);
-				lightning->SetBeamPoints(target, closestEnemy);
-				lightning->Use();
 			}
 		}
 

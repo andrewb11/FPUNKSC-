@@ -19,6 +19,7 @@
 #include "AbilityBase.h"
 #include "FusionpunksGameState.h"
 #include "BulletBase.h"
+#include "Classes/Kismet/KismetSystemLibrary.h"
 #include "HeroBase.h"
 
 
@@ -130,6 +131,8 @@ void AHeroBase::BeginPlay()
 
 	currentHealth = maxHealth;
 	DefaultTurnRate = BaseTurnRate;
+	
+	
 
 	AFusionpunksGameState* gameState = Cast<AFusionpunksGameState>(GetWorld()->GetGameState());
 	if (gameState)
@@ -209,8 +212,13 @@ void AHeroBase::BeginPlay()
 		//UE_LOG(LogTemp, Error, TEXT("Found %d towers"), teamTowers.Num());
 	}
 
-	if (!ActorHasTag("AI"))
+	else
 	{
+		//FOR AI TESTING
+		TArray<AActor*> enemyHeros;
+		UGameplayStatics::GetAllActorsOfClass(GetWorld(), enemyHeroClass, enemyHeros);
+		AICam = enemyHeros[0];
+
 		APlayerController* controller = Cast<APlayerController>(GetController());
 		if (controller)
 		{
@@ -235,7 +243,7 @@ void AHeroBase::BeginPlay()
 void AHeroBase::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
-
+	
 	//here just incase something goes wrong 
 	if (GetCharacterMovement() && !bIsAttacking && GetCharacterMovement()->MaxWalkSpeed == 0)
 	{
@@ -518,12 +526,12 @@ bool AHeroBase::CheckForNearbyEnemyHero()
 		GetActorLocation(),
 		FQuat(),
 		obejctQP,
-		FCollisionShape::MakeSphere(2000),
+		FCollisionShape::MakeSphere(1500),
 		QueryParameters);
 		
 	nearbyEnemyHero = nullptr;
 
-	if (Results.Num() == 1)
+	if (Results.Num() == 1 && (!bIgnoreEnemyHero ||GetDistanceTo(Results[0].GetActor()) <= 500))
 	{
 		nearbyEnemyHero = Cast<AHeroBase>(Results[0].GetActor());
 
@@ -531,7 +539,7 @@ bool AHeroBase::CheckForNearbyEnemyHero()
 	return nearbyEnemyHero != nullptr;
 }
 
-bool AHeroBase::CheckForNearbyEnemyTowers()
+bool AHeroBase::f()
 {
 	FCollisionObjectQueryParams objectQP;
 
@@ -546,7 +554,7 @@ bool AHeroBase::CheckForNearbyEnemyTowers()
 		GetActorLocation(),
 		FQuat(),
 		objectQP,
-		FCollisionShape::MakeSphere(1000.f),
+		FCollisionShape::MakeSphere(1500.f),
 		QueryParameters);
 
 	nearbyEnemyTower = nullptr;
@@ -576,18 +584,19 @@ bool AHeroBase::CheckForNearbyInteractions()
 	QueryParameters.AddIgnoredActor(this);
 	FCollisionObjectQueryParams obejctQP2;
 	obejctQP2.AddObjectTypesToQuery(Hero);
+	obejctQP2.AddObjectTypesToQuery(DamageableStructures);
 	TArray<FOverlapResult> Results2;
 	GetWorld()->OverlapMultiByObjectType(Results2,
 		GetActorLocation(),
 		FQuat(),
 		obejctQP2,
-		FCollisionShape::MakeSphere(2000),
+		FCollisionShape::MakeSphere(1500),
 		QueryParameters);
 
 	FCollisionObjectQueryParams obejctQP;
 	obejctQP.AddObjectTypesToQuery(CreepCampTrigger);
 	obejctQP.AddObjectTypesToQuery(Creeps);
-	obejctQP.AddObjectTypesToQuery(DamageableStructures);
+	
 	//Overlap multi by channel as a sphere (for pick ups?)
 
 	//QueryParameters.OwnerTag = TEXT("Player");
@@ -606,11 +615,25 @@ bool AHeroBase::CheckForNearbyInteractions()
 	nearbyEnemyCamp = nullptr;
 	nearbyEnemyTower = nullptr;
 
-	if (Results2.Num() == 1)
+	if (Results2.Num() == 1 && (!bIgnoreEnemyHero || GetDistanceTo(Results2[0].GetActor()) <= 500))
 	{
-		if (Results2[0].GetActor()->IsA(AHeroBase::StaticClass()))
+		nearbyEnemyHero = Cast<AHeroBase>(Results2[0].GetActor());		
+	}
+
+	if (Results2.Num() > 0)
+	{
+
+		for (int32 i = 0; i < Results2.Num(); i++)
 		{
-			nearbyEnemyHero = Cast<AHeroBase>(Results2[0].GetActor());
+			if (Results2[i].GetActor()->IsA(ATowerBase::StaticClass()))
+			{
+				if ((ActorHasTag("Cyber") && Results2[i].Actor->ActorHasTag("Diesel"))
+					|| (ActorHasTag("Diesel") && Results2[i].Actor->ActorHasTag("Cyber")))
+				{
+					nearbyEnemyTower = Cast<ATowerBase>(Results2[i].GetActor());
+					UE_LOG(LogTemp, Display, TEXT("FOUND NEARBY ENEMY TOWER"));
+				}
+			}
 		}
 	}
 
@@ -662,15 +685,6 @@ bool AHeroBase::CheckForNearbyInteractions()
 				}
 			}
 
-			else if (Results[i].GetActor()->IsA(ATowerBase::StaticClass()))
-			{
-				if ((ActorHasTag("Cyber") && Results[i].Actor->ActorHasTag("Diesel"))
-					|| (ActorHasTag("Diesel") && Results[i].Actor->ActorHasTag("Cyber")))
-				{
-					nearbyEnemyTower = Cast<ATowerBase>(Results[i].GetActor());
-					UE_LOG(LogTemp, Display, TEXT("FOUND NEARBY ENEMY TOWER"));
-				}
-			}
 		}
 	}
 	return nearbyOwnedCreepCamps.Num() > 0 || nearbyEnemyHero != nullptr || nearbyEnemyCreeps.Num() > 0 || nearbyEnemyCamp != nullptr || nearbyEnemyTower != nullptr;
@@ -939,6 +953,7 @@ float AHeroBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dama
 			}
 			else
 			{
+				StopAttacking();
 				bIsRespawning = true;
 				AHeroBase* hero = Cast<AHeroBase>(DamageCauser);
 				if (hero)
@@ -946,6 +961,7 @@ float AHeroBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dama
 					UE_LOG(LogTemp, Log, TEXT("%i experence rewarded"), XPKillReward);
 					hero->AddToExperience(XPKillReward);
 				}
+				
 				compassDecalComponent->bVisible = 0;
 				compassDecalComponent->MarkRenderStateDirty();
 
@@ -966,16 +982,21 @@ float AHeroBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dama
 
 
 				//SetActorEnableCollision(false);
-				respawnEffect->StartTimer(respawnTime, this);
-
+				
+				
 				if (ActorHasTag("AI"))
 				{
 					UGameplayStatics::PlaySound2D(this, Announcer_EnemyHeroDestroyed);
+					heroAI->AbortTask();
+					heroAI->RestartHeroAITree();
+					
+					
 				}
 				else
 				{
 					UGameplayStatics::PlaySound2D(this, Announcer_PlayerHeroDestroyed);
 				}
+				respawnEffect->StartTimer(respawnTime, this);
 			}
 		}
 		return DamageAmount;
@@ -1395,6 +1416,13 @@ void AHeroBase::AIRecruited()
 		bJustRecruited = true;
 		GetWorld()->GetTimerManager().SetTimer(recruitTimerHandle, this, &AHeroBase::TriggerRecruitStatusChange, 10.0f, false);
 	}
+
+	else
+	{
+
+		GetWorld()->GetTimerManager().ClearTimer(recruitTimerHandle);
+		GetWorld()->GetTimerManager().SetTimer(recruitTimerHandle, this, &AHeroBase::TriggerRecruitStatusChange, 10.0f, false);
+	}
 }
 
 void AHeroBase::TriggerRecruitStatusChange()
@@ -1497,6 +1525,57 @@ void AHeroBase::ReviveCharacter(float HealthPercentage)
 	LevelUpParticleSystem->Activate(true);
 }
 
+bool AHeroBase::SafeToJump()
+{
+	FVector jumpLocation;
+	//if (ActorHasTag("Diesel"))
+	jumpLocation =  (GetActorLocation() + (GetActorRotation().Vector() * 1000.0f));
+	TArray<AActor*> objectsToIgnore;
+	objectsToIgnore.Add(this);
+	TArray<FHitResult>  Results;
+	UKismetSystemLibrary::LineTraceMulti_NEW(GetWorld(), GetActorLocation(), jumpLocation, ETraceTypeQuery::TraceTypeQuery1, false,
+		objectsToIgnore, EDrawDebugTrace::ForDuration, Results, true, FLinearColor::Green, FLinearColor::Red,1);
+	bool abletojump = true;
+	if (Results.Num() > 0)
+	{
+		
+		for (int i = 0; i < Results.Num(); i++)
+		{
+			if (!Results[i].Actor->IsA(AHeroBase::StaticClass()) && !Results[i].Actor->IsA(ACreep::StaticClass()))
+			{
+				UE_LOG(LogTemp, Display, TEXT("Something is in the jump path, Cant Jump"));
+				abletojump = false;
+			}
+		}
+
+	}
+
+	else 
+	{
+		UE_LOG(LogTemp, Display, TEXT("Trace couldnt find anything, Safe to Jump"));
+	}
+
+	return abletojump;
+}
+
+void AHeroBase::StartIgnoreHeroTimer()
+{
+	if (!bIgnoreEnemyHero)
+	{
+		bIgnoreEnemyHero = true;
+		GetWorld()->GetTimerManager().SetTimer(ignoreHeroTimerHandle, this, &AHeroBase::TriggerIgnoreHeroStatusChange, 5.0f, false);
+	}
+
+	else
+	{
+		GetWorld()->GetTimerManager().ClearTimer(ignoreHeroTimerHandle);
+		GetWorld()->GetTimerManager().SetTimer(ignoreHeroTimerHandle, this, &AHeroBase::TriggerIgnoreHeroStatusChange, 5.0f, false);
+	}
+}
 
 
+void AHeroBase::TriggerIgnoreHeroStatusChange()
+{
+	bIgnoreEnemyHero = false;
+}
 

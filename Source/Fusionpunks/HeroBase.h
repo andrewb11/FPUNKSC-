@@ -28,8 +28,7 @@ class FUSIONPUNKS_API AHeroBase : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* FollowCamera;
 
-	UPROPERTY(EditAnywhere)
-		AActor* AICam;
+	
 
 public:
 	AHeroBase();
@@ -112,6 +111,12 @@ public:
 
 protected:
 	void AdjustCameraZoom(float Value);
+
+//FOR AI TESTING
+	UPROPERTY(EditAnywhere)
+		AActor* AICam;
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<AHeroBase> enemyHeroClass;
 	void SwapAICamera();
 
 //editable stats in blueprint
@@ -191,6 +196,12 @@ public:
 	//FORCEINLINE class ABase* GetEnemyBase() const { return enemyBase; }
 	FORCEINLINE TArray<class ATowerBase*> GetTeamTowers() const { return teamTowers; }
 	FORCEINLINE int32 NumEnemyBaseTowers() const { return  enemyBaseTowers.Num(); }
+
+	
+	
+
+
+
 	void RemoveEnemyBaseTower(AActor* tower);
 	
 	void AddToCapturedCamps(class ACreepCamp* camp);
@@ -256,6 +267,9 @@ protected:
 	TArray<class ATowerBase*> teamTowers;
 
 
+	
+
+
 protected:
 	//function for Trigger Events
 	UFUNCTION()
@@ -298,6 +312,8 @@ public:
 	bool CheckForNearbyEnemyTowers();
 	void AIRecruited();
 	bool bJustRecruited = false;
+	void StartIgnoreHeroTimer();
+	bool SafeToJump();
 	FORCEINLINE TArray<class ACreep*> GetNearbyEnemyCreeps() const { return nearbyEnemyCreeps; }
 	FORCEINLINE AHeroBase* GetNearbyEnemyHero() const { return nearbyEnemyHero; }
 	FORCEINLINE TArray<class ACreepCamp*> GetNearbyOwnedCreepCamps() const { return nearbyOwnedCreepCamps; }
@@ -315,8 +331,13 @@ private:
 	TArray<class ACreep*> nearbyCreepsInArmy;
 	UFUNCTION()
 		void TriggerRecruitStatusChange();
+	UFUNCTION()
+		void TriggerIgnoreHeroStatusChange();
+	bool bIgnoreEnemyHero = false;
+	FTimerHandle recruitTimerHandle, ignoreHeroTimerHandle;
 
-	FTimerHandle recruitTimerHandle;
+	
+
 
 public:
 	TArray<ACreep*> AHeroBase::GetCreepArmyArray();
@@ -488,5 +509,8 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = HeroFunctions)
 		void ReviveCharacter(float HealthPercentage);
+
+
+
 
 };

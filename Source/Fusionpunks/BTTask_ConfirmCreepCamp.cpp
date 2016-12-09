@@ -69,12 +69,12 @@ void UBTTask_ConfirmCreepCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8
 		FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 	}
 
-	else if (heroStats->GetHealthPercent() < 0.15f)
+	/*else if (heroStats->GetHealthPercent() < 0.15f)
 	{
 		UE_LOG(LogTemp, Display, TEXT("AI HAS LOW HP WHILE HEADING TO CAMP"));
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 
-	}
+	}*/
 
 	else if (hero->CheckForNearbyInteractions())
 	{

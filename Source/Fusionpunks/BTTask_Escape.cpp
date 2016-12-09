@@ -33,17 +33,20 @@ EBTNodeResult::Type UBTTask_Escape::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 void UBTTask_Escape::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
+	movementAbilityDelay += DeltaSeconds;
+
 	if (hero->GetPlayerHealthAsDecimal() <= healthPercentageAbort)
 	{
+
 		if (hero->GetArmySize() > 0 && sacrificeCreepAbility != nullptr && sacrificeCreepAbility->CanUse())
 		{
 			UE_LOG(LogTemp, Error, TEXT("AI Sacrificed Creep"));
 			sacrificeCreepAbility->Use();
 		}
 
-		else  if (dashAbility!=nullptr && dashAbility->CanUse())
+		else  if (movementAbilityDelay >= 0.75f  && dashAbility!=nullptr && dashAbility->CanUse()  && hero->SafeToJump())
 		{
-			OwnerComp.GetAIOwner()->StopMovement();
+			//OwnerComp.GetAIOwner()->StopMovement();
 			dashAbility->Use();
 		}
 
@@ -54,16 +57,16 @@ void UBTTask_Escape::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 			FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 		}
 
-
-		if (hero->CheckForNearbyEnemyHero())
+		else if (hero->CheckForNearbyEnemyHero())
 		{
 			enemyHero = hero->GetNearbyEnemyHero();
 
 			if (enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() < 0 ||
-				enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() < healthPercentageDifference)
+				enemyHero->GetPlayerHealthAsDecimal() - hero->GetPlayerHealthAsDecimal() < healthPercentageDifference
+				|| hero->GetDistanceTo(enemyHero) <= 500)
 			{
 				UE_LOG(LogTemp, Error, TEXT("AI Thinks It can still fight"));
-				FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
+				FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 			}
 		}
 

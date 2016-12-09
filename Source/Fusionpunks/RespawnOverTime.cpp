@@ -40,7 +40,10 @@ void ARespawnOverTime::ApplyEffect()
 
 	if (hero->ActorHasTag("AI"))
 	{
+		
 		heroAI->ResetAITreeTaskStatus();
-		heroAI->RestartHeroAITree();
+		//heroAI->RestartHeroAITree();
+		//heroAI->ResumeTree();
+		
 	}
 }

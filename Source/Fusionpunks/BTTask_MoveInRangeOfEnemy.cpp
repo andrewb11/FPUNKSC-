@@ -55,18 +55,19 @@ void UBTTask_MoveInRangeOfEnemy::TickTask(UBehaviorTreeComponent& OwnerComp, uin
 				ability1->Use();
 			}
 
-			else if (ability2 != nullptr &&  ability2->CanUse())
+			else if (ability2 != nullptr &&  ability2->CanUse() && hero->SafeToJump())
 			{
-				OwnerComp.GetAIOwner()->StopMovement();
+				//OwnerComp.GetAIOwner()->StopMovement();
+				
 				ability2->Use();
 			}
 		}
 
 		else if (hero->ActorHasTag("Diesel"))
 		{
-			if (ability0 != nullptr && ability0->CanUse())
+			if (ability0 != nullptr && ability0->CanUse() && hero->SafeToJump())
 			{
-				OwnerComp.GetAIOwner()->StopMovement();
+				//OwnerComp.GetAIOwner()->StopMovement();
 				ability0->Use();
 			}
 		}

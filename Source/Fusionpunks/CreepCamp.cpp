@@ -30,6 +30,9 @@ ACreepCamp::ACreepCamp()
 	campMesh->SetRelativeScale3D(FVector(1.5f, 1.5f, 1.5f));
 	campMesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
+	AudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("CampAudioComponent"));
+	AudioComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+
 	//Create our ring around the camp
 	//ringMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("CaptureRing"));
 	//const ConstructorHelpers::FObjectFinder<UStaticMesh> ringStaticMesh(TEXT("StaticMesh'/Game/CreepCamp/Models/CreepCampCircle.CreepCampCircle'"));
@@ -40,8 +43,6 @@ ACreepCamp::ACreepCamp()
 
 	//create & Set box trigger for capturing the camp
 	
-	
-
 	lampPostMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LampPostMesh"));
 	lampPostMesh->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
@@ -159,6 +160,10 @@ void ACreepCamp::BeginPlay()
 			}
 		}
 	}
+	/*if (AmbienceSound)
+	{
+		AudioComponent->SetSound(AmbienceSound);
+	}*/
 }
 
 // Called every frame
@@ -345,6 +350,12 @@ void ACreepCamp::OnOverlapBegin(class UPrimitiveComponent* ThisComp, class AActo
 		if (!OtherActor->Tags.Contains("AI"))
 		{
 			captureVariables.bPlayerIsCapturing = true;
+			
+			//if (AmbienceSound)
+			//{
+			//	//AudioComponent->Play();
+			//	AudioComponent->FadeIn(1, 1, 0);
+			//}
 		}
 	}
 
@@ -355,6 +366,11 @@ void ACreepCamp::OnOverlapBegin(class UPrimitiveComponent* ThisComp, class AActo
 		if (!OtherActor->Tags.Contains("AI"))
 		{
 			captureVariables.bPlayerIsCapturing = true;
+			//if (AmbienceSound)
+			//{
+			//	//AudioComponent->Play();
+			//	AudioComponent->FadeIn(1, 1, 0);
+			//}
 		}
 	}
 }
@@ -370,6 +386,12 @@ void ACreepCamp::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* 
 		if (!OtherActor->Tags.Contains("AI"))
 		{
 			captureVariables.bPlayerIsCapturing = false;
+			//if (AmbienceSound)
+			//{
+			//	//AudioComponent->Stop();
+			//	AudioComponent->FadeOut(2, 0);
+			//	UGameplayStatics::PlaySoundAtLocation(GetWorld(), AmbienceSound, GetActorLocation())
+			//}
 		}
 	}
 
@@ -380,6 +402,11 @@ void ACreepCamp::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* 
 		if (!OtherActor->Tags.Contains("AI"))
 		{
 			captureVariables.bPlayerIsCapturing = false;
+			//if (AmbienceSound)
+			//{
+			//	//AudioComponent->Stop();
+			//	AudioComponent->FadeOut(2, 0);
+			//}
 		}
 	}
 }

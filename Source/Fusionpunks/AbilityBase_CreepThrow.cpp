@@ -106,12 +106,12 @@ bool AAbilityBase_CreepThrow::Ability()
 						creepToThrow->SetActorLocation(hero->GetCreepAttachment()->GetComponentLocation());
 						creepToThrow->SetActorRotation(FRotator::ZeroRotator);
 						
-						//Play Take Damage Aniamtion
-						UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsHoldingCreep"));
-						if (boolProp)
-						{
-							boolProp->SetPropertyValue_InContainer(hero->GetMesh()->GetAnimInstance(), true);
-						}
+						////Play Take Damage Aniamtion
+						//UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsHoldingCreep"));
+						//if (boolProp)
+						//{
+						//	boolProp->SetPropertyValue_InContainer(hero->GetMesh()->GetAnimInstance(), true);
+						//}
 
 						creepThrowState = ECreepThrowState::CTS_CreepInHand;
 						return false;
@@ -137,12 +137,12 @@ bool AAbilityBase_CreepThrow::Ability()
 		AHeroBase* hero = Cast<AHeroBase>(GetOwner());
 		if (hero)
 		{
-			//Play Take Damage Aniamtion
-			UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsThrowingCreep"));
-			if (boolProp)
-			{
-				boolProp->SetPropertyValue_InContainer(hero->GetMesh()->GetAnimInstance(), true);
-			}
+			////Play Take Damage Aniamtion
+			//UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsThrowingCreep"));
+			//if (boolProp)
+			//{
+			//	boolProp->SetPropertyValue_InContainer(hero->GetMesh()->GetAnimInstance(), true);
+			//}
 
 			creepThrowState = ECreepThrowState::CTS_PreparingToThrow;
 			return false; 
@@ -160,12 +160,6 @@ bool AAbilityBase_CreepThrow::Ability()
 		AHeroBase* hero = Cast<AHeroBase>(GetOwner());
 		if (hero)
 		{
-			//Play Take Damage Aniamtion
-			UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsThrowCreep"));
-			if (boolProp)
-			{
-				boolProp->SetPropertyValue_InContainer(hero->GetMesh()->GetAnimInstance(), true);
-			}
 			//UE_LOG(LogTemp, Warning, TEXT("Throwing Creep!!"));
 			//if we press again then launch the creep
 			//Detach the creep from the hero and launch it
@@ -201,6 +195,14 @@ bool AAbilityBase_CreepThrow::Ability()
 			upwardsLaunchForce = InitialUpwardsLaunchForce;
 			forwardLaunchForce = InitialForwardLaunchForce;
 			creepThrowState = ECreepThrowState::CTS_FindCreepToThrow;
+			
+			//Change state machine
+			UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsThrowingCreep"));
+			if (boolProp)
+			{
+				boolProp->SetPropertyValue_InContainer(hero->GetMesh()->GetAnimInstance(), true);
+			}
+
 			return true;
 		}
 		hero->bIsThrowingCreep = false;

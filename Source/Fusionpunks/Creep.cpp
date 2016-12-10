@@ -5,6 +5,7 @@
 #include "CreepHealthbarWidget.h"
 #include "Runtime/Engine/Classes/Kismet/KismetMathLibrary.h"
 #include "FloatingDamageWidget.h"
+#include "TowerBase.h"
 #include "FusionpunksGameState.h"
 #include "CreepAIController.h"
 #include "Explosion.h"
@@ -191,9 +192,10 @@ float ACreep::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, A
 		ACreepAIController* AiController = Cast<ACreepAIController>(GetController());
 		if (AiController)
 		{
-			if (AiController->GetBlackboardComponent()->GetValueAsObject("EnemyTarget") == nullptr)
+			if (AiController->GetBlackboardComponent()->GetValueAsObject("EnemyTarget") == nullptr && !DamageCauser->ActorHasTag(team))
 			{
 				AiController->GetBlackboardComponent()->SetValueAsObject("EnemyTarget", DamageCauser);
+				AiController->RestartBehaviorTree();
 			}
 		}
 
@@ -346,21 +348,39 @@ void ACreep::MoveRight(float Value)
 UFUNCTION()
 void ACreep::OnOverlapBegin(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
-	ACreepAIController* AiController = Cast<ACreepAIController>(GetController());
-	if (AiController)
+	if (!OtherActor->ActorHasTag(team) && OtherActor->IsA(AHeroBase::StaticClass()) || !OtherActor->ActorHasTag(team) && OtherActor->IsA(ACreep::StaticClass())
+		|| !OtherActor->ActorHasTag(team) && OtherActor->IsA(ATowerBase::StaticClass()))
 	{
-		if (AiController->GetBlackboardComponent()->GetValueAsObject("EnemyTarget") == nullptr && !OtherActor->Tags.Contains(team))
+		ACreepAIController* AiController = Cast<ACreepAIController>(GetController());
+		if (AiController)
 		{
-			//UE_LOG(LogTemp, Warning, TEXT("Creep Entered Player Trigger!"));
-			//SetToRun();
-
-			AiController->GetBlackboardComponent()->SetValueAsObject("EnemyTarget", OtherActor);
-			//AiController->GetBlackboardComponent()->SetValueAsBool("AtTargetPosition", false);
-			//AiController->GetBlackboardComponent()->SetValueAsBool("hasWaited", true);
-			//AiController->GetBlackboardComponent()->SetValueAsObject("SelfActor", this);
-			//AiController->RestartBehaviorTree();
+			if (AiController->GetBlackboardComponent()->GetValueAsObject("EnemyTarget") == nullptr)
+			{
+				AiController->GetBlackboardComponent()->SetValueAsObject("EnemyTarget", OtherActor);
+			}
 		}
 	}
+
+	if (OtherActor->IsA(ATowerBase::StaticClass()))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Overlapped with tower!"));
+	}
+
+	//ACreepAIController* AiController = Cast<ACreepAIController>(GetController());
+	//if (AiController)
+	//{
+	//	if (AiController->GetBlackboardComponent()->GetValueAsObject("EnemyTarget") == nullptr && !OtherActor->Tags.Contains(team))
+	//	{
+	//		//UE_LOG(LogTemp, Warning, TEXT("Creep Entered Player Trigger!"));
+	//		//SetToRun();
+
+	//		AiController->GetBlackboardComponent()->SetValueAsObject("EnemyTarget", OtherActor);
+	//		//AiController->GetBlackboardComponent()->SetValueAsBool("AtTargetPosition", false);
+	//		//AiController->GetBlackboardComponent()->SetValueAsBool("hasWaited", true);
+	//		//AiController->GetBlackboardComponent()->SetValueAsObject("SelfActor", this);
+	//		//AiController->RestartBehaviorTree();
+	//	}
+	//}
 }
 
 //function for Trigger Exit Events

@@ -82,7 +82,7 @@ void ABulletBase::Fire(float Speed, FVector Direction)
 	//UE_LOG(LogTemp, Warning, TEXT("Direction is: %s"), Direction.ToString());
 	//projectileMovementComp->SetVelocityInLocalSpace(Direction * Speed);
 	//projectileMovementComp->Velocity = Direction * Speed;
-	projectileMovementComp->SetVelocityInLocalSpace(Speed * FVector::ForwardVector);
+	projectileMovementComp->SetVelocityInLocalSpace(Speed * Direction);
 	projectileMovementComp->UpdateComponentVelocity();
 }
 

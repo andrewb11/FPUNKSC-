@@ -24,6 +24,16 @@ bool AAbility_ForcePush::Ability()
 
 	ParticleSystem->Activate();
 
+	AHeroBase* hero = Cast<AHeroBase>(GetOwner());
+	if (hero)
+	{
+		UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsForcePush"));
+		if (boolProp)
+		{
+			boolProp->SetPropertyValue_InContainer(hero->GetMesh()->GetAnimInstance(), true);
+		}
+	}
+
 	//UE_LOG(LogTemp, Warning, TEXT("Using FORCE PUSH!"));
 	FCollisionObjectQueryParams obejctQP;
 
@@ -46,45 +56,53 @@ bool AAbility_ForcePush::Ability()
 		{
 			for (int i = 0; i < Results.Num(); i++)
 			{
-				AHeroBase* enemyHero = Cast<AHeroBase>(GetOwner());
-				ACreep* enemyCreep = Cast<ACreep>(Results[i].GetActor());
-				if (enemyCreep)
+				if (Results[i].GetActor()->IsA(ACreep::StaticClass()))
 				{
-					if (!owner->Tags.Contains(enemyCreep->GetTeam()))
+					ACreep* enemyCreep = Cast<ACreep>(Results[i].GetActor());
+					if (enemyCreep)
 					{
-						enemyCreep->TakeDamage(damage, FDamageEvent::FDamageEvent(), owner->GetController(), owner);
-						enemyCreep->Stun(1.0f);
-						enemyCreep->GetCharacterMovement()->Velocity = FVector::ZeroVector;
+						if (!owner->Tags.Contains(enemyCreep->GetTeam()))
+						{
+							enemyCreep->TakeDamage(damage, FDamageEvent::FDamageEvent(), owner->GetController(), owner);
+							enemyCreep->Stun(1.0f);
+							enemyCreep->GetCharacterMovement()->Velocity = FVector::ZeroVector;
 
-						FVector dir = enemyCreep->GetActorLocation() - owner->GetActorLocation();
-						dir.Normalize();
-						dir *= PushForce;
-						dir.Z += 500.0f;
-						dir += enemyCreep->GetCharacterMovement()->Velocity;
-						
-						UE_LOG(LogTemp, Warning, TEXT("Adding force to enemy creep: %f"), PushForce);
+							FVector dir = enemyCreep->GetActorLocation() - owner->GetActorLocation();
+							dir.Normalize();
+							dir *= PushForce;
+							dir.Z += 500.0f;
+							dir += enemyCreep->GetCharacterMovement()->Velocity;
 
-						enemyCreep->GetCharacterMovement()->Launch(dir);
-						//enemyCreep->GetCharacterMovement()->UpdateComponentVelocity();
+							UE_LOG(LogTemp, Warning, TEXT("Adding force to enemy creep: %f"), PushForce);
 
-						continue;
+							enemyCreep->GetCharacterMovement()->Launch(dir);
+							//enemyCreep->GetCharacterMovement()->UpdateComponentVelocity();
+
+							continue;
+						}
 					}
 				}
-				else if (enemyHero)
+				
+				else if (Results[i].GetActor()->IsA(AHeroBase::StaticClass())) 
 				{
-					enemyHero->TakeDamage(damage, FDamageEvent::FDamageEvent(), owner->GetController(), owner);
-					FVector dir = enemyHero->GetActorLocation() - owner->GetActorLocation();
-					dir.Normalize();
-					dir *= PushForce;
-					//enemyCreep->GetMesh()->AddForceAtLocation(dir, enemyCreep->GetActorLocation());
-					//enemyHero->GetCharacterMovement()->AddImpulse(owner->GetActorLocation(), true);
-					enemyHero->GetCharacterMovement()->AddForce(dir);
-					continue;
+					AHeroBase* enemyHero = Cast<AHeroBase>(GetOwner());
+					if (enemyHero)
+					{
+						enemyHero->TakeDamage(damage, FDamageEvent::FDamageEvent(), owner->GetController(), owner);
+						FVector dir = enemyHero->GetActorLocation() - owner->GetActorLocation();
+						dir.Normalize();
+						dir *= PushForce;
+						//enemyCreep->GetMesh()->AddForceAtLocation(dir, enemyCreep->GetActorLocation());
+						//enemyHero->GetCharacterMovement()->AddImpulse(owner->GetActorLocation(), true);
+						enemyHero->GetCharacterMovement()->AddForce(dir);
+						continue;
+					}
 				}
 
 			}
 		}
 	}
+	
 
 	return true; 
 }

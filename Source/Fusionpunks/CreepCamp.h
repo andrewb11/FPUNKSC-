@@ -32,7 +32,7 @@ struct FCaptureVariables
 	}
 	/*The more creeps that are in the camp the higher the capture time should be
 	When a camp is captured all the creeps associated with it should die */
-	UPROPERTY(EditAnywhere, Category = CampVariables)
+	UPROPERTY(EditDefaultsOnly, Category = CampVariables)
 	float targetCaptureTime;
 	UPROPERTY()
 	float captureTime;
@@ -81,8 +81,6 @@ struct FSpawningVariables
 	float creepSpawnTimerTarget;
 	UPROPERTY()
 	float creepSpawnTimer;
-
-
 };
 
 class AHeroBase;
@@ -109,9 +107,9 @@ private:
 	UPROPERTY(EditAnywhere, Category = Stats)
 		ECampType campType;
 
-	UPROPERTY(EditAnywhere, Category = Stats)
+	UPROPERTY(EditDefaultsOnly, Category = Stats)
 		FCaptureVariables captureVariables;
-	UPROPERTY(EditAnywhere, Category = Stats)
+	UPROPERTY(EditDefaultsOnly, Category = Stats)
 		FSpawningVariables spawningVariables;
 
 	class AHeroBase* dieselHero;
@@ -246,10 +244,13 @@ public:
 
 
 protected:
+	UPROPERTY(EditDefaultsOnly)
+		UAudioComponent* AudioComponent;
 	UPROPERTY(EditDefaultsOnly, Category = Audio)
 	USoundWave* AmbienceSound;
 	UPROPERTY(EditDefaultsOnly, Category = Audio)
 	USoundWave* Announcer_CampCaptured;
 	UPROPERTY(EditDefaultsOnly, Category = Audio)
 	USoundWave* Announcer_CampLost;
+
 };

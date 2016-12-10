@@ -33,7 +33,7 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 		float BaseLookUpRate;
 
-	void SetOwningHero(class AHeroBase* OwningHero) { owningHero = OwningHero; }
+	void SetOwningHero(class AHeroBase* OwningHero) { owningHero = OwningHero; }  
 
 protected:
 	void TurnAtRate(float Rate);
@@ -48,6 +48,8 @@ protected:
 
 protected:
 	float EnergyRemaining;
+
+	UPROPERTY(EditDefaultsOnly, Category = Stats)
 	float MaxEnergy;
 
 	UPROPERTY(EditDefaultsOnly, Category = Variables)
@@ -77,12 +79,46 @@ protected:
 	UPROPERTY(EditDefaultsOnly, Category = Prefabs)
 		TSubclassOf<class ABulletBase> BulletToSpawn;
 
+public:
+	void InitTurretWidget();
+
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = UI)
+		TSubclassOf<UUserWidget> TurretWidgetClass;
+	UUserWidget* TurretWidget;
+
+	UPROPERTY(EditDefaultsOnly)
+		USceneComponent* ChargeBeamSpawnPoint1;
+	UPROPERTY(EditDefaultsOnly)
+		USceneComponent* ChargeBeamSpawnPoint2;
+	UPROPERTY(EditDefaultsOnly, Category = Prefabs)
+		TSubclassOf<class ABulletBase> ChargeBeamBullet;
+
+	ABulletBase* BeamOne;
+	ABulletBase* BeamTwo;
+
+	UPROPERTY(EditDefaultsOnly, Category = Variables)
+		float ChargeBeamBulletSpeed = 200.0f;
+	UPROPERTY(EditDefaultsOnly, Category = Variables)
+		float ChargeBeamSizeScaleRate = 1.25f;
+	UPROPERTY(EditDefaultsOnly, Category = Variables)
+		float DamageMultiplierScaleRate = 1.05f;
+	UPROPERTY(EditDefaultsOnly, Category = Variables)
+		float DamageMultiplierCap = 10.0f;
+	UPROPERTY(EditDefaultsOnly, Category = Variables)
+		FVector MaxScale = FVector::FVector(4, 4, 4);
+
 	UPROPERTY(EditDefaultsOnly, Category = Prefabs)
 		UCameraComponent* TurretCamera;
 
 	void ReturnToHero();
 
 	virtual void FireBullet();
+
+	virtual void ChargeBeam();
+	//virtual void FireBeam();
+
+	bool bIsCharging = false;
 
 	class AHeroBase* owningHero;
 	

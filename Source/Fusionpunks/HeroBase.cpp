@@ -18,8 +18,8 @@
 #include "Turret.h"
 #include "AbilityBase.h"
 #include "FusionpunksGameState.h"
-#include "BulletBase.h"
 #include "Classes/Kismet/KismetSystemLibrary.h"
+#include "BulletBase.h"
 #include "HeroBase.h"
 
 
@@ -131,8 +131,6 @@ void AHeroBase::BeginPlay()
 
 	currentHealth = maxHealth;
 	DefaultTurnRate = BaseTurnRate;
-	
-	
 
 	AFusionpunksGameState* gameState = Cast<AFusionpunksGameState>(GetWorld()->GetGameState());
 	if (gameState)
@@ -215,10 +213,13 @@ void AHeroBase::BeginPlay()
 	else
 	{
 		//FOR AI TESTING
-		TArray<AActor*> enemyHeros;
-		UGameplayStatics::GetAllActorsOfClass(GetWorld(), enemyHeroClass, enemyHeros);
-		AICam = enemyHeros[0];
-
+		if (enemyHeroClass)
+		{
+			TArray<AActor*> enemyHeros;
+			UGameplayStatics::GetAllActorsOfClass(GetWorld(), enemyHeroClass, enemyHeros);
+			AICam = enemyHeros[0];
+		}
+		
 		APlayerController* controller = Cast<APlayerController>(GetController());
 		if (controller)
 		{
@@ -237,13 +238,18 @@ void AHeroBase::BeginPlay()
 	if(GetCharacterMovement())
 		DefaultMaxWalkSpeed = GetCharacterMovement()->MaxWalkSpeed;
 
+	//APlayerController* playerController = Cast<APlayerController>(Controller);
+	//if (playerController)
+	//{
+	//	playerController->SetAudioListenerOverride(RootComponent, RootComponent->GetComponentLocation(), FRotator::ZeroRotator);
+	//}
 }
 
 // Called every frame
 void AHeroBase::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
-	
+
 	//here just incase something goes wrong 
 	if (GetCharacterMovement() && !bIsAttacking && GetCharacterMovement()->MaxWalkSpeed == 0)
 	{
@@ -526,12 +532,12 @@ bool AHeroBase::CheckForNearbyEnemyHero()
 		GetActorLocation(),
 		FQuat(),
 		obejctQP,
-		FCollisionShape::MakeSphere(1500),
+		FCollisionShape::MakeSphere(2000),
 		QueryParameters);
 		
 	nearbyEnemyHero = nullptr;
 
-	if (Results.Num() == 1 && (!bIgnoreEnemyHero ||GetDistanceTo(Results[0].GetActor()) <= 500))
+	if (Results.Num() == 1 && (!bIgnoreEnemyHero || GetDistanceTo(Results[0].GetActor()) <= 500))
 	{
 		nearbyEnemyHero = Cast<AHeroBase>(Results[0].GetActor());
 
@@ -539,7 +545,7 @@ bool AHeroBase::CheckForNearbyEnemyHero()
 	return nearbyEnemyHero != nullptr;
 }
 
-bool AHeroBase::f()
+bool AHeroBase::CheckForNearbyEnemyTowers()
 {
 	FCollisionObjectQueryParams objectQP;
 
@@ -596,7 +602,7 @@ bool AHeroBase::CheckForNearbyInteractions()
 	FCollisionObjectQueryParams obejctQP;
 	obejctQP.AddObjectTypesToQuery(CreepCampTrigger);
 	obejctQP.AddObjectTypesToQuery(Creeps);
-	
+
 	//Overlap multi by channel as a sphere (for pick ups?)
 
 	//QueryParameters.OwnerTag = TEXT("Player");
@@ -617,7 +623,7 @@ bool AHeroBase::CheckForNearbyInteractions()
 
 	if (Results2.Num() == 1 && (!bIgnoreEnemyHero || GetDistanceTo(Results2[0].GetActor()) <= 500))
 	{
-		nearbyEnemyHero = Cast<AHeroBase>(Results2[0].GetActor());		
+		nearbyEnemyHero = Cast<AHeroBase>(Results2[0].GetActor());
 	}
 
 	if (Results2.Num() > 0)
@@ -829,7 +835,11 @@ void AHeroBase::AdjustCameraZoom(float Value)
 
 void AHeroBase::OnOverlapBegin(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
-	if (Cast<ACreepCamp>(OtherActor))
+	if (bIsDashing && OtherActor->IsA(ACharacter::StaticClass()) && !OtherActor->ActorHasTag(team))
+	{
+		OtherActor->TakeDamage(basicAttackDamage, FDamageEvent::FDamageEvent(), Controller, this);
+	}
+	else if (Cast<ACreepCamp>(OtherActor))
 	{
 		visitingCamp = Cast<ACreepCamp>(OtherActor);
 
@@ -961,7 +971,6 @@ float AHeroBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dama
 					UE_LOG(LogTemp, Log, TEXT("%i experence rewarded"), XPKillReward);
 					hero->AddToExperience(XPKillReward);
 				}
-				
 				compassDecalComponent->bVisible = 0;
 				compassDecalComponent->MarkRenderStateDirty();
 
@@ -974,28 +983,32 @@ float AHeroBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dama
 
 				StopAnimMontage(GetCurrentMontage());
 
-				GetMesh()->SetVisibility(false);
+				//change animation state machine 
+				UBoolProperty* boolProp = FindField<UBoolProperty>(GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsDead"));
+				if (boolProp)
+				{
+					boolProp->SetPropertyValue_InContainer(GetMesh()->GetAnimInstance(), true);
+					//bool meleeAttack = boolProp->GetPropertyValue_InContainer(GetMesh()->GetAnimInstance());
+				}
+
+				//GetMesh()->SetVisibility(false);
 				OnDeath();
 
 				bTurretCloseBy = false;
 				nearbyTurret = nullptr;
 
-
-				//SetActorEnableCollision(false);
-				
-				
 				if (ActorHasTag("AI"))
 				{
 					UGameplayStatics::PlaySound2D(this, Announcer_EnemyHeroDestroyed);
 					heroAI->AbortTask();
 					heroAI->RestartHeroAITree();
-					
-					
 				}
 				else
 				{
 					UGameplayStatics::PlaySound2D(this, Announcer_PlayerHeroDestroyed);
 				}
+
+				//SetActorEnableCollision(false);
 				respawnEffect->StartTimer(respawnTime, this);
 			}
 		}
@@ -1169,7 +1182,7 @@ bool AHeroBase::SacrificeCreep()
 void AHeroBase::UseAbility0()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Using Ability 0"));
-	if (AbilitiesClass[0] != nullptr)
+	if (AbilitiesClass[0] != nullptr && !bIsAttacking)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Spawning Ability 0"));
 		//spawn the ability
@@ -1194,7 +1207,7 @@ void AHeroBase::UseAbility1()
 {
 
 	UE_LOG(LogTemp, Warning, TEXT("Using Ability 1"));
-	if (AbilitiesClass[1] != nullptr)
+	if (AbilitiesClass[1] != nullptr && !bIsAttacking)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Spawning Ability 1"));
 		//spawn the ability
@@ -1219,7 +1232,7 @@ void AHeroBase::UseAbility1()
 void AHeroBase::UseAbility2()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Using Ability 2"));
-	if (AbilitiesClass[2] != nullptr)
+	if (AbilitiesClass[2] != nullptr && !bIsAttacking)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Spawning Ability 2"));
 		//spawn the ability
@@ -1243,7 +1256,7 @@ void AHeroBase::UseAbility2()
 void AHeroBase::UseAbility3()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Using Ability 3"));
-	if (AbilitiesClass[3] != nullptr)
+	if (AbilitiesClass[3] != nullptr && !bIsAttacking)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Spawning Ability 3"));
 		//spawn the ability
@@ -1267,7 +1280,7 @@ void AHeroBase::UseAbility3()
 void AHeroBase::UseAbility4()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Using Ability 4"));
-	if (AbilitiesClass[4] != nullptr)
+	if (AbilitiesClass[4] != nullptr && !bIsAttacking)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Spawning Ability 4"));
 		//spawn the ability
@@ -1348,6 +1361,11 @@ void AHeroBase::RestoreFriction()
 	GetCharacterMovement()->GroundFriction = 8.0f;
 }
 
+void AHeroBase::RestoreHealthFull()
+{
+	currentHealth = maxHealth;
+}
+
 void AHeroBase::Launch()
 {
 	GetCharacterMovement()->GroundFriction = 0;
@@ -1416,7 +1434,6 @@ void AHeroBase::AIRecruited()
 		bJustRecruited = true;
 		GetWorld()->GetTimerManager().SetTimer(recruitTimerHandle, this, &AHeroBase::TriggerRecruitStatusChange, 10.0f, false);
 	}
-
 	else
 	{
 
@@ -1473,30 +1490,29 @@ void AHeroBase::HideUseTowerWidget()
 //NOTE::Brendon - Add sound when possessing Turret 
 void AHeroBase::PossessTurret()
 {
-	if (nearbyTurret)
+	if (GetWorld()->GetName().Contains("TestLevel"))
 	{
-		playerHealthBarWidget->SetVisibility(ESlateVisibility::Hidden);
-		TowerWidget->SetVisibility(ESlateVisibility::Hidden);
-		//switch possession to turret and give it a reference to the hero to possess when finished using
-		nearbyTurret->SetOwningHero(this);
-		Controller->Possess(nearbyTurret);
-		//spawn widget for turret
-		if (InTurretWidgetClass)
+		if (nearbyTurret)
 		{
+			playerHealthBarWidget->SetVisibility(ESlateVisibility::Hidden);
+			TowerWidget->SetVisibility(ESlateVisibility::Hidden);
+
+			//switch possession to turret and give it a reference to the hero to possess when finished using
+			nearbyTurret->SetOwningHero(this);
+			Controller->Possess(nearbyTurret);
+			nearbyTurret->InitTurretWidget();
+			//spawn widget for turret
 			APlayerController* controller = Cast<APlayerController>(Controller);
 			if (controller)
 			{
 				controller->SetViewTargetWithBlend(nearbyTurret);
-				if (InTurretWidgetClass)
-				{
-					InTurretWidget = CreateWidget<UUserWidget>(controller, InTurretWidgetClass);
-					InTurretWidget->AddToPlayerScreen();
-				}
+
 			}
+
+			//hide character
+			bIsHidden = true;
+			SetActorHiddenInGame(true);
 		}
-		//hide character
-		bIsHidden = true;
-		SetActorHiddenInGame(true);
 	}
 }
 
@@ -1525,20 +1541,21 @@ void AHeroBase::ReviveCharacter(float HealthPercentage)
 	LevelUpParticleSystem->Activate(true);
 }
 
+
 bool AHeroBase::SafeToJump()
 {
 	FVector jumpLocation;
 	//if (ActorHasTag("Diesel"))
-	jumpLocation =  (GetActorLocation() + (GetActorRotation().Vector() * 1000.0f));
+	jumpLocation = (GetActorLocation() + (GetActorRotation().Vector() * 1000.0f));
 	TArray<AActor*> objectsToIgnore;
 	objectsToIgnore.Add(this);
 	TArray<FHitResult>  Results;
 	UKismetSystemLibrary::LineTraceMulti_NEW(GetWorld(), GetActorLocation(), jumpLocation, ETraceTypeQuery::TraceTypeQuery1, false,
-		objectsToIgnore, EDrawDebugTrace::ForDuration, Results, true, FLinearColor::Green, FLinearColor::Red,1);
+		objectsToIgnore, EDrawDebugTrace::ForDuration, Results, true, FLinearColor::Green, FLinearColor::Red, 1);
 	bool abletojump = true;
 	if (Results.Num() > 0)
 	{
-		
+
 		for (int i = 0; i < Results.Num(); i++)
 		{
 			if (!Results[i].Actor->IsA(AHeroBase::StaticClass()) && !Results[i].Actor->IsA(ACreep::StaticClass()))
@@ -1550,7 +1567,7 @@ bool AHeroBase::SafeToJump()
 
 	}
 
-	else 
+	else
 	{
 		UE_LOG(LogTemp, Display, TEXT("Trace couldnt find anything, Safe to Jump"));
 	}
@@ -1578,4 +1595,12 @@ void AHeroBase::TriggerIgnoreHeroStatusChange()
 {
 	bIgnoreEnemyHero = false;
 }
+
+void AHeroBase::SpawnCreepArmy(int CreepsToSpawn)
+{
+
+}
+
+
+
 

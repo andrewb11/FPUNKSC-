@@ -20,10 +20,18 @@ void ARespawnOverTime::StartTimer(float time, AActor* target)
 
 void ARespawnOverTime::ApplyEffect()
 {
+	//change animation state machine 
+	UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsDead"));
+	if (boolProp)
+	{
+		boolProp->SetPropertyValue_InContainer(hero->GetMesh()->GetAnimInstance(), false);
+		//bool meleeAttack = boolProp->GetPropertyValue_InContainer(GetMesh()->GetAnimInstance());
+	}
+
 	hero->SetActorLocation(hero->startingLocation);
 	hero->ResetHealth();
 	hero->ShowCompassDecal();
-	hero->GetMesh()->SetVisibility(true);
+	//hero->GetMesh()->SetVisibility(true);
 	hero->SetActorEnableCollision(true);
 	hero->RestoreWalkSpeed();
 	hero->bIsAttacking = false; 
@@ -40,10 +48,6 @@ void ARespawnOverTime::ApplyEffect()
 
 	if (hero->ActorHasTag("AI"))
 	{
-		
 		heroAI->ResetAITreeTaskStatus();
-		//heroAI->RestartHeroAITree();
-		//heroAI->ResumeTree();
-		
 	}
 }

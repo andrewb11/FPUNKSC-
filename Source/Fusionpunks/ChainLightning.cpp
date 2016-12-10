@@ -106,7 +106,7 @@ void AChainLightning::TriggerEnter(class UPrimitiveComponent* ThisComp, class AA
 void AChainLightning::CheckForNearbyEnemies()
 {
 
-	AActor *closestEnemy;
+	
 	FCollisionObjectQueryParams obejctQP;
 	obejctQP.AddObjectTypesToQuery(Creeps);
 	obejctQP.AddObjectTypesToQuery(Hero);
@@ -167,8 +167,8 @@ void AChainLightning::CheckForNearbyEnemies()
 						lightning->AddAffectedActor(affectedActors[i]);
 					}
 					lightning->SetSpawner(lightningSpawner);
-					lightning->AddAffectedActor(closestEnemy);
-					lightning->SetBeamPoints(target, closestEnemy);
+					lightning->AddAffectedActor(enemies[i]);
+					lightning->SetBeamPoints(target, enemies[i]);
 					lightning->Use();
 				}
 			}

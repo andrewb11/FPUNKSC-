@@ -60,8 +60,7 @@ void AHealingWell::TriggerEnter(class UPrimitiveComponent* ThisComp, class AActo
 			healingParticleEffect->Activate(true);
 			hero->SetInsideHealingWell(true);
 			UE_LOG(LogTemp, Error, TEXT("CYBER HEALING WELL ACTIVATED"))
-
-			healingEffect->SetTotalHealthValue(hero->GetMaxHealth() * HealPercentagePerTick,0.1);
+			healingEffect->SetTotalHealthValue(hero->GetMaxHealth() * HealPercentagePerTick, 0.1);
 			healingEffect->StartTimer(0.1, OtherActor);
 		}
 	

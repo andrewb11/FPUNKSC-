@@ -22,16 +22,14 @@ bool AAbility_SlowEnemyCharacter::Ability()
 
 	for (int i = 0; i < Results.Num(); i++)
 	{
-		AHeroBase* hero = Cast<AHeroBase>(Results[i].GetActor());
-		if (hero && !hero->Tags.Contains("Diesel"))
+		AHeroBase* enemyHero = Cast<AHeroBase>(Results[i].GetActor());
+		if (enemyHero && enemyHero->ActorHasTag("Cyber"))
 		{
-			//check if owner is facing the target
-
 			//Update Anim State Machine
 			AHeroBase* hero = Cast<AHeroBase>(GetOwner());
 			if (hero)
 			{
-				//Play Take Damage Aniamtion
+				//Play Take Damage Animation
 				
 				UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsSlow"));
 				if (boolProp)
@@ -40,14 +38,13 @@ bool AAbility_SlowEnemyCharacter::Ability()
 				}
 			}
 
-			//if facing the target spawn a slow over time effect on the enemy 
 			FActorSpawnParameters spawnParams;
-			spawnParams.Owner = GetOwner();
+			spawnParams.Owner = hero;
 			spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 			ASlowOverTime* slowOverTime = GetWorld()->SpawnActor<ASlowOverTime>(slowOverTimeClass, hero->GetActorLocation(), FRotator::ZeroRotator, spawnParams);
 			slowOverTime->SetSlowPercentage(SlowPercentage);
-			slowOverTime->StartTimer(SlowDuration, hero);
+			slowOverTime->StartTimer(SlowDuration, enemyHero);
 			return true;
 		}
 	}

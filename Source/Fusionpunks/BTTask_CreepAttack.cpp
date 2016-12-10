@@ -13,27 +13,43 @@ EBTNodeResult::Type UBTTask_CreepAttack::ExecuteTask(UBehaviorTreeComponent& Own
 	ACreep* owner = Cast<ACreep>(OwnerComp.GetBlackboardComponent()->GetValueAsObject("SelfActor"));
 	if (blackboardComponent && owner)
 	{
-		AHeroBase* enemy = Cast<AHeroBase>(blackboardComponent->GetValueAsObject("EnemyTarget"));
+		//AHeroBase* enemyHero = Cast<AHeroBase>(blackboardComponent->GetValueAsObject("EnemyTarget"));
+		AActor* enemy = Cast<AActor>(blackboardComponent->GetValueAsObject("EnemyTarget"));
 		ACreep* enemyCreep = Cast<ACreep>(blackboardComponent->GetValueAsObject("EnemyTarget"));
+
 		if (enemy != nullptr)
 		{
-			/*Brendon - Note: damageEvent can be: FPointDamageEvent, FRadialDamageEvent, FDamageEvent or a custom DamageEvent
-			more info @ https://www.unrealengine.com/blog/damage-in-ue4*/
 			FDamageEvent damageEvent;
 			float damage = owner->MeleeAttack();
-			if(damage > 0)
+			if (damage > 0)
+			{
 				enemy->TakeDamage(damage, damageEvent, owner->GetController(), owner);
-			//UE_LOG(LogTemp, Warning, TEXT("Took Damage From Creep"));
-
+			}
 			return EBTNodeResult::Succeeded;
 		}
-		else if (enemyCreep != nullptr && !enemyCreep->GetBIsDead())
-		{
-			FDamageEvent damageEvent;
-			enemyCreep->TakeDamage(owner->MeleeAttack(), damageEvent, owner->GetController(), owner);
 
-			return EBTNodeResult::Succeeded;
-		}
+		//if (enemyHero != nullptr)
+		//{
+		//	/*Brendon - Note: damageEvent can be: FPointDamageEvent, FRadialDamageEvent, FDamageEvent or a custom DamageEvent
+		//	more info @ https://www.unrealengine.com/blog/damage-in-ue4*/
+		//	FDamageEvent damageEvent;
+		//	float damage = owner->MeleeAttack();
+		//	if (damage > 0)
+		//	{
+		//		enemyHero->TakeDamage(damage, damageEvent, owner->GetController(), owner);
+		//	}
+		//	return EBTNodeResult::Succeeded;
+		//}
+		//else if (enemyCreep != nullptr && !enemyCreep->GetBIsDead())
+		//{
+		//	FDamageEvent damageEvent;
+		//	float damage = owner->MeleeAttack();
+		//	if (damage > 0)
+		//	{
+		//		enemyCreep->TakeDamage(owner->MeleeAttack(), damageEvent, owner->GetController(), owner);
+		//	}
+		//	return EBTNodeResult::Succeeded;
+		//}
 	}
 	blackboardComponent->SetValueAsBool("hasWaited", false);
 	return EBTNodeResult::Failed;

@@ -13,8 +13,6 @@ ATowerBase::ATowerBase()
 	PrimaryActorTick.bCanEverTick = true;
 	rootCldr = CreateDefaultSubobject<UBoxComponent>(TEXT("Root"));
 	RootComponent = rootCldr;
-	visualTower = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("VisualCube"));
-	visualTower->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	radius = CreateDefaultSubobject<USphereComponent>(TEXT("Radius"));
 	radius->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	radius->bGenerateOverlapEvents = true;
@@ -145,7 +143,6 @@ bool ATowerBase::CheckForEnemyHero()
 
 	for (int i = 0; i < enemyUnits.Num(); i++)
 	{
-		
 		if (!enemyUnits[i]->IsActorBeingDestroyed() && enemyUnits[i]->IsA(AHeroBase::StaticClass()))
 		{
 			foundHero = true;

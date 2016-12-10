@@ -10,12 +10,12 @@ ACreepAIController::ACreepAIController()
 	BlackboardComponent = CreateDefaultSubobject<UBlackboardComponent>(TEXT("BlackboardComponent"));
 	PawnSensingComponent = CreateDefaultSubobject<UPawnSensingComponent>(TEXT("PawnsensingComponent"));
 
-	const ConstructorHelpers::FObjectFinder<UBehaviorTree> BTFinder(TEXT("BehaviorTree'/Game/Creeps/AI/CreepBehaviorTree.CreepBehaviorTree'"));
+	/*const ConstructorHelpers::FObjectFinder<UBehaviorTree> BTFinder(TEXT("BehaviorTree'/Game/Creeps/AI/CreepBehaviorTree.CreepBehaviorTree'"));
 
 	if (IsValid(BTFinder.Object))
 	{
 		BehaviorTreeAsset = BTFinder.Object;
-	}
+	}*/
 }
 
 
@@ -28,8 +28,8 @@ void ACreepAIController::Possess(APawn* Pawn)
 		BlackboardComponent->InitializeBlackboard(*BehaviorTreeAsset->BlackboardAsset);
 		//UseBlackboard(BehaviorTreeAsset->BlackboardAsset, BlackboardComponent);
 		BlackboardComponent->SetValueAsObject("SelfPawn", Pawn);
-		BlackboardComponent->SetValueAsBool("bIsStunned", false);
-		BlackboardComponent->SetValueAsBool("AtTargetPosition", true);
+		//BlackboardComponent->SetValueAsBool("bIsStunned", false);
+		//BlackboardComponent->SetValueAsBool("AtTargetPosition", true);
 		BehaviorTreeComponent->StartTree(*BehaviorTreeAsset);
 	}
 }

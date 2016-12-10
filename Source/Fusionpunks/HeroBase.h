@@ -28,8 +28,6 @@ class FUSIONPUNKS_API AHeroBase : public ACharacter
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class UCameraComponent* FollowCamera;
 
-	
-
 public:
 	AHeroBase();
 	virtual void BeginPlay() override;
@@ -45,6 +43,9 @@ public:
 	/** Base look up/down rate, in deg/sec. Other scaling may affect final rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 		float BaseLookUpRate;
+
+	UPROPERTY(BlueprintReadWrite, Category = Variables)
+		bool bIsDashing = false;
 
 protected:
 	/** Called for forwards/backward input */
@@ -111,8 +112,8 @@ public:
 
 protected:
 	void AdjustCameraZoom(float Value);
-
-//FOR AI TESTING
+	
+	//FOR AI TESTING //TURN OFF FOR FINAL BUILD
 	UPROPERTY(EditAnywhere)
 		AActor* AICam;
 	UPROPERTY(EditDefaultsOnly)
@@ -196,12 +197,6 @@ public:
 	//FORCEINLINE class ABase* GetEnemyBase() const { return enemyBase; }
 	FORCEINLINE TArray<class ATowerBase*> GetTeamTowers() const { return teamTowers; }
 	FORCEINLINE int32 NumEnemyBaseTowers() const { return  enemyBaseTowers.Num(); }
-
-	
-	
-
-
-
 	void RemoveEnemyBaseTower(AActor* tower);
 	
 	void AddToCapturedCamps(class ACreepCamp* camp);
@@ -220,11 +215,6 @@ public:
 protected:
 	class ATurret* nearbyTurret;
 	virtual void PossessTurret();
-
-	UPROPERTY(EditDefaultsOnly, Category = UI)
-		TSubclassOf<UUserWidget> InTurretWidgetClass;
-
-	UUserWidget* InTurretWidget;
 	
 protected:
 	//AI HERO STUFFS
@@ -265,9 +255,6 @@ protected:
 	class ACreep* attackingCreep = nullptr;
 
 	TArray<class ATowerBase*> teamTowers;
-
-
-	
 
 
 protected:
@@ -335,9 +322,6 @@ private:
 		void TriggerIgnoreHeroStatusChange();
 	bool bIgnoreEnemyHero = false;
 	FTimerHandle recruitTimerHandle, ignoreHeroTimerHandle;
-
-	
-
 
 public:
 	TArray<ACreep*> AHeroBase::GetCreepArmyArray();
@@ -470,6 +454,8 @@ public:
 
 	virtual void MeleeAttack();
 
+	void RestoreHealthFull();
+
 protected:
 	float launchForce;
 	bool bChainAttack = false;
@@ -510,7 +496,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = HeroFunctions)
 		void ReviveCharacter(float HealthPercentage);
 
-
-
+	UFUNCTION(BlueprintCallable, Category = HeroFunctions)
+		void SpawnCreepArmy(int CreepsToSpawn);
 
 };

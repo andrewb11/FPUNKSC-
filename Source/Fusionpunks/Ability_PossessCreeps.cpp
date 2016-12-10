@@ -33,6 +33,16 @@ void AAbility_PossessCreeps::Tick(float DeltaSeconds)
 		//if character moves while casting
 		if (owner->GetCharacterMovement()->Velocity.Size() > 0)
 		{
+			AHeroBase* hero = Cast<AHeroBase>(GetOwner());
+			if (hero)
+			{
+				UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsControlCreeps"));
+				if (boolProp)
+				{
+					boolProp->SetPropertyValue_InContainer(hero->GetMesh()->GetAnimInstance(), false);
+				}
+			}
+			
 			bIsCasting = false; 
 			castTimer = 0;
 			//hide widget
@@ -57,7 +67,7 @@ void AAbility_PossessCreeps::Tick(float DeltaSeconds)
 			obejctQP.AddObjectTypesToQuery(Hero);
 
 			TArray<FOverlapResult> actorsFound;
-			GetWorld()->OverlapMultiByObjectType(actorsFound,GetActorLocation(),FQuat(),obejctQP,FCollisionShape::MakeSphere(AbilityRadius), QueryParameters);
+			GetWorld()->OverlapMultiByObjectType(actorsFound, owner->GetActorLocation(),FQuat(),obejctQP,FCollisionShape::MakeSphere(AbilityRadius), QueryParameters);
 
 			for(int i = 0; i < actorsFound.Num(); i++)
 			{
@@ -72,6 +82,16 @@ void AAbility_PossessCreeps::Tick(float DeltaSeconds)
 					return;
 				}
 			}
+			AHeroBase* hero = Cast<AHeroBase>(GetOwner());
+			if (hero)
+			{
+				UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsControlCreeps"));
+				if (boolProp)
+				{
+					boolProp->SetPropertyValue_InContainer(hero->GetMesh()->GetAnimInstance(), false);
+				}
+			}
+
 			bIsChanneling = false; 
 			if (castBarWidget)
 			{
@@ -85,6 +105,16 @@ void AAbility_PossessCreeps::Tick(float DeltaSeconds)
 		//if character moves while casting
 		if (owner->GetCharacterMovement()->Velocity.Size() > 0)
 		{
+			AHeroBase* hero = Cast<AHeroBase>(GetOwner());
+			if (hero)
+			{
+				UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsControlCreeps"));
+				if (boolProp)
+				{
+					boolProp->SetPropertyValue_InContainer(hero->GetMesh()->GetAnimInstance(), false);
+				}
+			}
+
 			bIsChanneling = false;
 			channelTimer = ChannelDuration;
 			if (castBarWidget)
@@ -103,6 +133,16 @@ void AAbility_PossessCreeps::Tick(float DeltaSeconds)
 		channelTimer -= DeltaSeconds;
 		if (channelTimer <= 0)
 		{
+			AHeroBase* hero = Cast<AHeroBase>(GetOwner());
+			if (hero)
+			{
+				UBoolProperty* boolProp = FindField<UBoolProperty>(hero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsControlCreeps"));
+				if (boolProp)
+				{
+					boolProp->SetPropertyValue_InContainer(hero->GetMesh()->GetAnimInstance(), false);
+				}
+			}
+
 			bIsChanneling = false;
 			channelTimer = ChannelDuration;
 			if (castBarWidget)
@@ -143,6 +183,13 @@ bool AAbility_PossessCreeps::Ability()
 					castBarWidget = CreateWidget<UCastBarWidget>(playerController, CastTimerWidgetClass);
 					castBarWidget->SetOwner(this);
 					castBarWidget->AddToPlayerScreen();
+
+					UBoolProperty* boolProp = FindField<UBoolProperty>(owningHero->GetMesh()->GetAnimInstance()->GetClass(), TEXT("IsControlCreeps"));
+					if (boolProp)
+					{
+						boolProp->SetPropertyValue_InContainer(owningHero->GetMesh()->GetAnimInstance(), true);
+					}
+
 					return true;
 				}
 			}	

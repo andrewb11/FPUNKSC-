@@ -32,6 +32,12 @@ ATurret::ATurret()
 	BulletSpawnPoint2 = CreateDefaultSubobject<USceneComponent>("Bullet2SpawnPoint");
 	BulletSpawnPoint2->AttachToComponent(TurretGunMesh, FAttachmentTransformRules::KeepRelativeTransform);
 
+	ChargeBeamSpawnPoint1 = CreateDefaultSubobject<USceneComponent>("ChargeBeam1SpawnPoint");
+	ChargeBeamSpawnPoint1->AttachToComponent(TurretGunMesh, FAttachmentTransformRules::KeepRelativeTransform);
+
+	ChargeBeamSpawnPoint2 = CreateDefaultSubobject<USceneComponent>("ChargeBeam2SpawnPoint");
+	ChargeBeamSpawnPoint2->AttachToComponent(TurretGunMesh, FAttachmentTransformRules::KeepRelativeTransform);
+
 	HeroInRangeRadius = CreateDefaultSubobject<USphereComponent>("TurretRadius");
 	HeroInRangeRadius->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	HeroInRangeRadius->OnComponentBeginOverlap.AddDynamic(this, &ATurret::OnOverlapBegin);
@@ -57,6 +63,30 @@ void ATurret::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
 
+	if (bIsCharging)
+	{
+		FVector vector(1, 1, 1);
+		//Implement Limit
+		if (BeamOne)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Scaling Bullet 1!"));
+			//BeamOne->GetTransform().MultiplyScale3D(vector * ChargeBeamSizeScaleRate * DeltaTime);
+			BeamOne->SetActorScale3D(BeamOne->GetActorScale3D() + ChargeBeamSizeScaleRate * DeltaTime);
+			if (BeamOne->GetActorScale3D().Size() > MaxScale.Size())
+			{
+				BeamOne->SetActorScale3D(FVector::FVector(1, 1, 1) * MaxScale);
+			}
+		}
+		if (BeamTwo)
+		{
+			//BeamTwo->GetTransform().MultiplyScale3D(vector * ChargeBeamSizeScaleRate * DeltaTime);
+			BeamTwo->SetActorScale3D(BeamTwo->GetActorScale3D() + ChargeBeamSizeScaleRate * DeltaTime);
+			if (BeamTwo->GetActorScale3D().Size() > MaxScale.Size())
+			{
+				BeamTwo->SetActorScale3D(FVector::FVector(1, 1, 1) * MaxScale);
+			}
+		}
+	}
 }
 
 // Called to bind functionality to input
@@ -77,6 +107,9 @@ void ATurret::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 	
 	InputComponent->BindAction("PossessTurret", IE_Pressed, this, &ATurret::ReturnToHero);
 	InputComponent->BindAction("FireTurret", IE_Pressed, this, &ATurret::FireBullet);
+
+	//InputComponent->BindAction("ChargeBeam", IE_Pressed, this, &ATurret::ChargeBeam);
+	//InputComponent->BindAction("ChargeBeam", IE_Released, this, &ATurret::ChargeBeam);
 }
 
 void ATurret::LookUpGun(float Rate)
@@ -110,6 +143,7 @@ void ATurret::FireBullet()
 		UGameplayStatics::PlaySound2D(GetWorld(), ShootSound);
 	}
 
+
 	//Spawn 2 bullets and fire them
 	if (BulletToSpawn)
 	{
@@ -120,8 +154,8 @@ void ATurret::FireBullet()
 			spawnParams.Owner = owningHero;
 			spawnParams.Instigator = owningHero;
 		}
-		
-		//spawn bullet 1 and 2
+
+		////spawn bullet 1 and 2
 		FVector2D ViewportSize = FVector2D(GEngine->GameViewport->Viewport->GetSizeXY());
 		ViewportSize *= 0.5f;
 
@@ -144,20 +178,20 @@ void ATurret::FireBullet()
 		newDirection1.Normalize();
 		FVector newDirection2 = Location2 - BulletSpawnPoint2->GetComponentLocation();
 		newDirection2.Normalize();
-		
+
 		ABulletBase* bullet1 = GetWorld()->SpawnActor<ABulletBase>(BulletToSpawn, BulletSpawnPoint1->GetComponentLocation(), BulletSpawnPoint1->GetComponentRotation(), spawnParams);
 		if (bullet1)
 		{
-			bullet1->Fire(bulletSpeed, newDirection1);
+			bullet1->Fire(bulletSpeed, Direction1);
 		}
-			
+
 
 		ABulletBase* bullet2 = GetWorld()->SpawnActor<ABulletBase>(BulletToSpawn, BulletSpawnPoint2->GetComponentLocation(), BulletSpawnPoint2->GetComponentRotation(), spawnParams);
 		if (bullet2)
 		{
-			bullet2->Fire(bulletSpeed, newDirection2);
+			bullet2->Fire(bulletSpeed, Direction2);
 		}
-		}
+	}
 			
 }
 
@@ -195,8 +229,6 @@ void ATurret::ReturnToHero()
 	if (owningHero)
 	{
 		//remove turret widget
-
-
 		owningHero->bIsHidden = false;
 		owningHero->SetActorHiddenInGame(false);
 
@@ -208,6 +240,59 @@ void ATurret::ReturnToHero()
 			//Restore HUD
 			owningHero->InitializeHUD();
 		}
+		if (TurretWidget)
+		{
+			TurretWidget->RemoveFromParent();
+		}
 	}
 }
+
+void ATurret::ChargeBeam()
+{
+	//swap our states
+	bIsCharging = !bIsCharging;
+	//check state
+	if (bIsCharging)
+	{
+		//UE_LOG(LogTemp, Warning, TEXT("Right Mouse Button Pressed!"));
+		FActorSpawnParameters spawnParams;
+		spawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		if (owningHero)
+		{
+			spawnParams.Owner = owningHero;
+			spawnParams.Instigator = owningHero;
+		}
+
+		BeamOne = GetWorld()->SpawnActor<ABulletBase>(ChargeBeamBullet, ChargeBeamSpawnPoint1->GetComponentLocation(), ChargeBeamSpawnPoint1->GetComponentRotation(), spawnParams);
+		BeamOne->AttachToComponent(ChargeBeamSpawnPoint1, FAttachmentTransformRules::KeepWorldTransform);
+		
+		BeamTwo = GetWorld()->SpawnActor<ABulletBase>(ChargeBeamBullet, ChargeBeamSpawnPoint2->GetComponentLocation(), ChargeBeamSpawnPoint2->GetComponentRotation(), spawnParams);
+		BeamTwo->AttachToComponent(ChargeBeamSpawnPoint2, FAttachmentTransformRules::KeepWorldTransform);
+		return;
+	}
+	//UE_LOG(LogTemp, Warning, TEXT("Right Mouse Button Released!"));
+	if (BeamOne)
+	{
+		BeamOne->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		BeamOne->Fire(ChargeBeamBulletSpeed, ChargeBeamSpawnPoint1->GetForwardVector());
+	}
+	if (BeamTwo)
+	{
+		BeamTwo->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+		BeamTwo->Fire(ChargeBeamBulletSpeed, ChargeBeamSpawnPoint2->GetForwardVector());
+	}
+
+}
+
+void ATurret::InitTurretWidget()
+{
+	APlayerController* playerController = Cast<APlayerController>(Controller);
+	if (playerController && TurretWidgetClass)
+	{
+		TurretWidget = CreateWidget<UUserWidget>(playerController, TurretWidgetClass);
+		TurretWidget->AddToPlayerScreen();
+	}
+}
+
+
 

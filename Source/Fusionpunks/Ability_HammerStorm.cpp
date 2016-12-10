@@ -20,7 +20,8 @@ void AAbility_HammerStorm::Tick(float DeltaSeconds)
 
 	if (bIsSpinning)
 	{
-		if (owningActor)
+		AHeroBase* hero = Cast<AHeroBase>(owningActor);
+		if (hero && !hero->bIsRespawning)
 		{
 			owningActor->AddActorLocalRotation(rotator * DeltaSeconds);
 		}

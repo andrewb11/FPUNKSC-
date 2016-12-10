@@ -230,5 +230,8 @@ void ACyberHeroCharacter::PossessTurret()
 {
 	Super::PossessTurret();
 
-	UIWidget->SetVisibility(ESlateVisibility::Hidden);
+	if (GetWorld()->GetName().Contains("TestLevel"))
+	{
+		UIWidget->SetVisibility(ESlateVisibility::Hidden);
+	}
 }

@@ -8,6 +8,7 @@
 #include "Creep.h"
 #include "HeroStats.h"
 #include "BaseDoor.h"
+#include "BaseReactor.h"
 #include "TowerBase.h"
 #include "FloatingDamageWidget.h"
 #include "HeroAIController.h"
@@ -20,6 +21,7 @@
 #include "FusionpunksGameState.h"
 #include "Classes/Kismet/KismetSystemLibrary.h"
 #include "BulletBase.h"
+#include "ObjectiveListWidget.h"
 #include "HeroBase.h"
 
 
@@ -177,14 +179,14 @@ void AHeroBase::BeginPlay()
 		Abilities[4] = GetWorld()->SpawnActor<AAbilityBase>(AbilitiesClass[4], GetActorLocation(), FRotator::ZeroRotator, spawnParams);
 
 
-	if (ActorHasTag("AI"))
-	{
+	
 		TArray<AActor*> baseDoors;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), enemyBaseDoorClass, baseDoors);
 
 		if (baseDoors.Num() == 1)
 		{
 			enemyBaseDoor = baseDoors[0];
+			EBD = Cast<ABaseDoor>(enemyBaseDoor);
 		}
 
 		TArray<AActor*> baseReactors;
@@ -194,10 +196,12 @@ void AHeroBase::BeginPlay()
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Found Enemy Base Reactor!!!!"));
 			enemyBaseReactor = baseReactors[0];
+			EBR = Cast<ABaseReactor>(enemyBaseReactor);
 		}
-
-		heroAI->LinkEnemyBaseProps(enemyBaseDoor, enemyBaseReactor);
-
+		if (ActorHasTag("AI"))
+		{
+			heroAI->LinkEnemyBaseProps(enemyBaseDoor, enemyBaseReactor);
+		}
 		TArray<AActor*> towersInGame;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), towerClass, towersInGame);
 		for (int i = 0; i < towersInGame.Num(); i++)
@@ -207,10 +211,10 @@ void AHeroBase::BeginPlay()
 		}
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), enemyBaseTowerClass, enemyBaseTowers);
 		
-		//UE_LOG(LogTemp, Error, TEXT("Found %d towers"), teamTowers.Num());
-	}
+		UE_LOG(LogTemp, Error, TEXT("Found %d towers"), teamTowers.Num());
+	
 
-	else
+	if (!ActorHasTag("AI"))
 	{
 		//FOR AI TESTING
 		if (enemyHeroClass)
@@ -218,6 +222,7 @@ void AHeroBase::BeginPlay()
 			TArray<AActor*> enemyHeros;
 			UGameplayStatics::GetAllActorsOfClass(GetWorld(), enemyHeroClass, enemyHeros);
 			AICam = enemyHeros[0];
+			enemyHero = Cast<AHeroBase>(enemyHeros[0]);
 		}
 		
 		APlayerController* controller = Cast<APlayerController>(GetController());
@@ -229,6 +234,10 @@ void AHeroBase::BeginPlay()
 			campProgressWidget = CreateWidget<UCampProgressWidget>(controller, campProgressWidgetClass);
 			campProgressWidget->AddToPlayerScreen();
 			campProgressWidget->SetVisibility(ESlateVisibility::Hidden);
+
+			objectiveListWidget = CreateWidget<UObjectiveListWidget>(controller, objectiveListWidgetClass);
+			objectiveListWidget->AddToPlayerScreen();
+			objectiveListWidget->SetOwner(this);
 
 			gameTimerWidget = CreateWidget<UGameTimerWidget>(controller, gameTimerWidgetClass);
 			gameTimerWidget->AddToPlayerScreen(1);
@@ -1600,6 +1609,38 @@ void AHeroBase::SpawnCreepArmy(int CreepsToSpawn)
 {
 
 }
+
+bool AHeroBase::DestroyedEnemyTower()
+{
+	if (enemyHero)
+	{
+		return enemyHero->GetTeamTowers().Num() < 4;
+	}
+	return false;
+}
+
+bool AHeroBase::DestroyedEnemyDoor()
+{
+	if (enemyHero && EBD)
+	{
+		return EBD->isDestroyed;
+	}
+	return false;
+}
+bool AHeroBase::DestroyedEnemyReactor()
+{
+	if (enemyHero && EBR)
+	{
+		return EBR->isDestroyed;
+	}
+	return false;
+}
+void AHeroBase::RemoveTeamTower(ATowerBase* tower)
+{
+	if (teamTowers.Contains(tower))
+		teamTowers.Remove(tower);
+}
+
 
 
 

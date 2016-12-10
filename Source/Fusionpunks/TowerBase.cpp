@@ -107,7 +107,7 @@ float ATowerBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dam
 	UE_LOG(LogTemp, Log, TEXT("Tower took %f damage."), DamageAmount);
 	if (currHP <= 0) 
 	{
-
+		teamHero->RemoveTeamTower(this);
 		if (ActorHasTag("BaseTower"))
 		{
 			enemyHero->RemoveEnemyBaseTower(this);

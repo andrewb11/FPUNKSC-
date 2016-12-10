@@ -118,6 +118,7 @@ protected:
 		AActor* AICam;
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<AHeroBase> enemyHeroClass;
+	AHeroBase* enemyHero;
 	void SwapAICamera();
 
 //editable stats in blueprint
@@ -197,12 +198,16 @@ public:
 	//FORCEINLINE class ABase* GetEnemyBase() const { return enemyBase; }
 	FORCEINLINE TArray<class ATowerBase*> GetTeamTowers() const { return teamTowers; }
 	FORCEINLINE int32 NumEnemyBaseTowers() const { return  enemyBaseTowers.Num(); }
-	void RemoveEnemyBaseTower(AActor* tower);
 	
+	void RemoveEnemyBaseTower(AActor* tower);
+	void RemoveTeamTower(class ATowerBase* tower);
 	void AddToCapturedCamps(class ACreepCamp* camp);
 	void RemoveFromCapturedCamps(class ACreepCamp* camp);
 	void UpdateHeroStats();
 	void SetIsCapturing(bool status, class ACreepCamp* camp);
+
+	
+
 
 	UPROPERTY(BlueprintReadWrite, Category = Variables)
 		bool bTurretCloseBy = false;
@@ -373,6 +378,11 @@ protected:
 
 	class UCampProgressWidget* campProgressWidget;
 
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<class UObjectiveListWidget> objectiveListWidgetClass;
+
+	class UObjectiveListWidget* objectiveListWidget;
+
 
 
 //Ability Array
@@ -456,7 +466,19 @@ public:
 
 	void RestoreHealthFull();
 
+
+	//OBJECTIVE LIST UI FUNCTIONS
+public:
+	bool DestroyedEnemyTower();
+	bool DestroyedEnemyDoor();
+	bool DestroyedEnemyReactor();
+
+	//lazy andrew
 protected:
+	class ABaseDoor* EBD;
+	class ABaseReactor* EBR;
+protected:
+	
 	float launchForce;
 	bool bChainAttack = false;
 	int combo = 0;

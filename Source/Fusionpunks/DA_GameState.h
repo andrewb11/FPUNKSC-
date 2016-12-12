@@ -18,5 +18,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = DA_GameState)
 	bool bGameStarted;
 
-	
+	void SetBossTower(class ABossTower* NewBossTower) { if (NewBossTower){ 
+		BossTower = NewBossTower; } }
+
+protected:
+	UPROPERTY(BlueprintReadWrite)
+		class ABossTower* BossTower;
+
+	UFUNCTION(BlueprintCallable, Category = DA_GameStateFunctions)
+		void StartBossEvent();
+
+	UFUNCTION(BlueprintCallable, Category = DA_GameStateFunctions)
+		void EndBossEvent();
 };

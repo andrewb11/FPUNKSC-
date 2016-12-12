@@ -12,7 +12,7 @@ AActor* AChainLightningSpawner::UpdateTarget()
 		UnHighlightAll(oldTargetResults);
 	} */
 
-	AActor *closestEnemy;
+	//AActor *closestEnemy;
 	FCollisionObjectQueryParams obejctQP;
 	obejctQP.AddObjectTypesToQuery(Creeps);
 	obejctQP.AddObjectTypesToQuery(Hero);
@@ -47,27 +47,33 @@ AActor* AChainLightningSpawner::UpdateTarget()
 			if (!skillTargetResults[i].GetActor()->ActorHasTag("Cyber"))
 			{
 				enemies.Add(skillTargetResults[i].GetActor());
+				break;
 			}
+			
 		}
-
 		if (enemies.Num() > 0)
 		{
-			closestEnemy = enemies[0];
-
-			for (int i = 0; i < enemies.Num(); i++)
-			{
-				if (GetDistanceTo(enemies[i]) <= GetDistanceTo(closestEnemy))
-				{
-					closestEnemy = enemies[i];
-				}
-			}
-
-			//HighlightTarget(closestEnemy, skillTargetResults);
-			return closestEnemy;
+			return enemies[0];
 		}
-		UE_LOG(LogTemp, Display, TEXT("No Enemies Nearby"));
-		return NULL;
+		//if (enemies.Num() > 0)
+		//{
+		//	closestEnemy = enemies[0];
+
+		//	for (int i = 0; i < enemies.Num(); i++)
+		//	{
+		//		if (GetDistanceTo(enemies[i]) <= GetDistanceTo(closestEnemy))
+		//		{
+		//			closestEnemy = enemies[i];
+		//		}
+		//	}
+
+		//	//HighlightTarget(closestEnemy, skillTargetResults);
+		//	return closestEnemy;
+		//}
+		
 	}
+	UE_LOG(LogTemp, Display, TEXT("No Enemies Nearby"));
+	return NULL;
 }
 
 bool AChainLightningSpawner::Ability()

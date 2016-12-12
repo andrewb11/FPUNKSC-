@@ -105,8 +105,6 @@ void AChainLightning::TriggerEnter(class UPrimitiveComponent* ThisComp, class AA
 }
 void AChainLightning::CheckForNearbyEnemies()
 {
-
-	
 	FCollisionObjectQueryParams obejctQP;
 	obejctQP.AddObjectTypesToQuery(Creeps);
 	obejctQP.AddObjectTypesToQuery(Hero);
@@ -131,51 +129,37 @@ void AChainLightning::CheckForNearbyEnemies()
 
 	if (Results.Num() == 0) {
 		UE_LOG(LogTemp, Display, TEXT("No Enemies Nearby"));
-		
+
 	}
 	else
 	{
-		TArray<AActor*> enemies;
 		for (int i = 0; i < Results.Num(); i++)
 		{
-			if (!Results[i].GetActor()->ActorHasTag("Cyber"))
+			if (!Results[i].GetActor()->ActorHasTag("Cyber") && !affectedActors.Contains(Results[i].GetActor()) && affectedActors.Num() < lightningSpawner->maxHits)
 			{
-				enemies.Add(Results[i].GetActor());
-			}
-		}
-
-
-
-		if (enemies.Num() > 0)
-		{
-			for (int i = 0; i < enemies.Num(); i++)
-			{
-				if (!affectedActors.Contains(enemies[i]) && affectedActors.Num() < lightningSpawner->maxHits)
+				UE_LOG(LogTemp, Display, TEXT("Found Unaffected NearbyEnemy"));
+				FVector spawnLoc;
+				spawnLoc = target->GetActorLocation();
+				spawnLoc.Z = spawnLoc.Z + 200;
+				FActorSpawnParameters spawnParams;
+				spawnParams.Instigator = Instigator;
+				AChainLightning* lightning = GetWorld()->SpawnActor
+					<AChainLightning>(chainLightningAbility,
+						spawnLoc,
+						FRotator::ZeroRotator, spawnParams);
+				for (int i = 0; i < affectedActors.Num(); i++)
 				{
-					UE_LOG(LogTemp, Display, TEXT("Found Unaffected NearbyEnemy"));
-					FVector spawnLoc;
-					spawnLoc = target->GetActorLocation();
-					spawnLoc.Z = spawnLoc.Z + 200;
-					FActorSpawnParameters spawnParams;
-					spawnParams.Instigator = Instigator;
-					AChainLightning* lightning = GetWorld()->SpawnActor
-						<AChainLightning>(chainLightningAbility,
-							spawnLoc,
-							FRotator::ZeroRotator, spawnParams);
-					for (int i = 0; i < affectedActors.Num(); i++)
-					{
-						lightning->AddAffectedActor(affectedActors[i]);
-					}
-					lightning->SetSpawner(lightningSpawner);
-					lightning->AddAffectedActor(enemies[i]);
-					lightning->SetBeamPoints(target, enemies[i]);
-					lightning->Use();
+					lightning->AddAffectedActor(affectedActors[i]);
 				}
+				lightning->SetSpawner(lightningSpawner);
+				lightning->AddAffectedActor(Results[i].GetActor());
+				lightning->SetBeamPoints(target, Results[i].GetActor());
+				lightning->Use();
+				break;
 			}
 		}
-
-	
 	}
+
 	startDestroyTimer = true;
 	
 }

@@ -16,6 +16,10 @@ ABaseReactor::ABaseReactor()
 	ReactorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorDestructibleMesh"));
 	RootComponent = ReactorMesh;
 	//ReactorMesh->AttachToComponent(col, FAttachmentTransformRules::KeepRelativeTransform);
+
+	structureRadius = CreateDefaultSubobject<USphereComponent>(TEXT("StructureRadius"));
+	structureRadius->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	structureRadius->SetSphereRadius(300);
 }
 
 // Called when the game starts or when spawned
@@ -39,13 +43,21 @@ float ABaseReactor::TakeDamage(float DamageAmount, struct FDamageEvent const & D
 	UE_LOG(LogTemp, Warning, TEXT("Base took %f damage."), DamageAmount);
 
 
-	if (!DamageCauser->ActorHasTag("AI") && !DamageCauser->ActorHasTag("Creep") && FloatingDamageWidgetClass)
+	if (DamageCauser && DamageCauser->IsA(AHeroBase::StaticClass()) && !DamageCauser->ActorHasTag("AI") && FloatingDamageWidgetClass)
 	{
-		UFloatingDamageWidget* floatingDamageWidget = CreateWidget<UFloatingDamageWidget>(GetWorld()->GetFirstPlayerController(), FloatingDamageWidgetClass);
-		floatingDamageWidget->SetAlignmentInViewport(FVector2D::FVector2D(0.5f, 0.5f));
-		floatingDamageWidget->SetIncDamage(DamageAmount);
-		floatingDamageWidget->SetOwningActor(this);
-		floatingDamageWidget->AddToViewport();
+
+		AHeroBase* enemy = Cast<AHeroBase>(DamageCauser);
+		APlayerController *playerController = nullptr;
+		if (enemy)
+			playerController = Cast<APlayerController>(enemy->GetController());
+		if (playerController)
+		{
+			UFloatingDamageWidget* floatingDamageWidget = CreateWidget<UFloatingDamageWidget>(playerController, FloatingDamageWidgetClass);
+			//floatingDamageWidget->SetAlignmentInViewport(FVector2D::FVector2D(0.5f, 0.5f));
+			floatingDamageWidget->SetIncDamage(DamageAmount);
+			floatingDamageWidget->SetOwningActor(this);
+			floatingDamageWidget->AddToPlayerScreen();
+		}
 	}
 
 

@@ -61,6 +61,8 @@ AHeroBase::AHeroBase()
 	FollowCamera->AttachToComponent(CameraBoom, FAttachmentTransformRules::KeepRelativeTransform); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	
+
 	//defaults unless set in blueprint
 	currentLevel = 1;
 	basicAttackDamage = 10.0f;
@@ -77,7 +79,10 @@ AHeroBase::AHeroBase()
 	sphereTrigger = CreateDefaultSubobject<USphereComponent>(TEXT("TriggerCollider"));
 	sphereTrigger->SetSphereRadius(agroRadius, true);
 	sphereTrigger->bGenerateOverlapEvents = true;
-	sphereTrigger->OnComponentBeginOverlap.AddDynamic(this, &AHeroBase::TriggerEnter);
+
+	//structureRadius->OnComponentBeginOverlap.AddDynamic(this, &AHeroBase::TriggerEnter);
+	//structureRadius->OnComponentEndOverlap.AddDynamic(this, &AHeroBase::TriggerExit);
+	
 	sphereTrigger->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 	//Create a scene component to attach creeps to for grenade throw, offset it from the "GrenadeThrow" socket on the character mesh
@@ -268,6 +273,15 @@ void AHeroBase::BeginPlay()
 void AHeroBase::Tick( float DeltaTime )
 {
 	Super::Tick( DeltaTime );
+
+
+	if (structureHealthBar && structureHealthBar->GetVisibility() == ESlateVisibility::Visible && hbStructures.Num() > 1)
+	{
+			if (GetClosestStructure())
+				structureHealthBar->SetOwningStructure(GetClosestStructure());
+	}
+
+
 
 	//here just incase something goes wrong 
 	if (GetCharacterMovement() && !bIsAttacking && GetCharacterMovement()->MaxWalkSpeed == 0)
@@ -854,6 +868,35 @@ void AHeroBase::AdjustCameraZoom(float Value)
 
 void AHeroBase::OnOverlapBegin(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
+
+
+	if (!ActorHasTag("AI"))
+	{
+
+		
+		if (ActorHasTag("Cyber") && !OtherActor->ActorHasTag("Cyber") && (OtherActor->IsA(ATowerBase::StaticClass())
+			|| OtherActor->IsA(ABaseDoor::StaticClass()) || OtherActor->IsA(ABaseReactor::StaticClass())))
+		{
+			UE_LOG(LogTemp, Display, TEXT("FOUND STRUCTURE FOR HB"));
+			structureHealthBar->SetOwningStructure(OtherActor);
+			structureHealthBar->SetVisibility(ESlateVisibility::Visible);
+			if (!hbStructures.Contains(OtherActor))
+				hbStructures.Add(OtherActor);
+
+		}
+
+		else if (ActorHasTag("Diesel") && !OtherActor->ActorHasTag("Diesel") && (OtherActor->IsA(ATowerBase::StaticClass())
+			|| OtherActor->IsA(ABaseDoor::StaticClass()) || OtherActor->IsA(ABaseReactor::StaticClass())))
+		{
+			UE_LOG(LogTemp, Display, TEXT("FOUND STRUCTURE FOR HB"));
+			structureHealthBar->SetOwningStructure(OtherActor);
+			structureHealthBar->SetVisibility(ESlateVisibility::Visible);
+			if(!hbStructures.Contains(OtherActor))
+				hbStructures.Add(OtherActor);
+		}
+	}
+
+
 	if (bIsDashing && OtherActor->IsA(ACharacter::StaticClass()) && !OtherActor->ActorHasTag(team))
 	{
 		OtherActor->TakeDamage(basicAttackDamage, FDamageEvent::FDamageEvent(), Controller, this);
@@ -876,6 +919,34 @@ void AHeroBase::OnOverlapBegin(class UPrimitiveComponent* ThisComp, class AActor
 
 void AHeroBase::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+
+
+	if (!ActorHasTag("AI"))
+	{
+
+		
+		if (ActorHasTag("Cyber") && !OtherActor->ActorHasTag("Cyber") && (OtherActor->IsA(ATowerBase::StaticClass())
+			|| OtherActor->IsA(ABaseDoor::StaticClass()) || OtherActor->IsA(ABaseReactor::StaticClass())))
+		{
+			UE_LOG(LogTemp, Display, TEXT("LOST STRUCTURE FOR HB"));
+			structureHealthBar->SetVisibility(ESlateVisibility::Hidden);
+			if (hbStructures.Contains(OtherActor))
+				hbStructures.Remove(OtherActor);
+
+		}
+
+		else if (ActorHasTag("Diesel") && !OtherActor->ActorHasTag("Diesel") && (OtherActor->IsA(ATowerBase::StaticClass())
+			|| OtherActor->IsA(ABaseDoor::StaticClass()) || OtherActor->IsA(ABaseReactor::StaticClass())))
+		{
+			UE_LOG(LogTemp, Display, TEXT("LOST STRUCTURE FOR HB"));
+			structureHealthBar->SetVisibility(ESlateVisibility::Hidden);
+			if (hbStructures.Contains(OtherActor))
+				hbStructures.Remove(OtherActor);
+		}
+	}
+
+
+
 	if (Cast<ACreepCamp>(OtherActor))
 	{
 		visitingCamp = nullptr;
@@ -1716,78 +1787,7 @@ void AHeroBase::PauseMenuPressed()
 	
 }
 
-void AHeroBase::TriggerEnter(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
-{
-	if (!ActorHasTag("AI"))
-	{
 
-		UE_LOG(LogTemp, Display, TEXT("FOUND STRUCTURE FOR HB"));
-		if (ActorHasTag("Cyber") && !OtherActor->ActorHasTag("Cyber") && !OtherActor->IsA(ACreep::StaticClass()))
-		{
-			if (!hbStructures.Contains(OtherActor))
-				hbStructures.Add(OtherActor);
-			if (hbStructures.Num() == 1)
-			{
-				structureHealthBar->SetOwningStructure(OtherActor);
-				structureHealthBar->SetVisibility(ESlateVisibility::Visible);
-			}
-		}
-
-		else if (ActorHasTag("Diesel") && !OtherActor->ActorHasTag("Diesel") && !OtherActor->IsA(ACreep::StaticClass()))
-		{
-			if (!hbStructures.Contains(OtherActor))
-				hbStructures.Add(OtherActor);
-			if (hbStructures.Num() == 1)
-			{
-				structureHealthBar->SetOwningStructure(OtherActor);
-				structureHealthBar->SetVisibility(ESlateVisibility::Visible);
-			}
-		}
-	}
-	
-}
-
-void AHeroBase::TriggerExit(UPrimitiveComponent* ThisComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
-{
-	if (!ActorHasTag("AI"))
-	{
-		
-		if (ActorHasTag("Cyber") && !OtherActor->ActorHasTag("Cyber") && !OtherActor->IsA(ACreep::StaticClass()))
-		{
-			if(hbStructures.Contains(OtherActor)) 
-				hbStructures.Remove(OtherActor);
-
-			
-			if (hbStructures.Num() >= 1)
-			{
-				structureHealthBar->SetOwningStructure(hbStructures[0]);
-			}
-			else if(hbStructures.Num() == 0)
-			{
-				structureHealthBar->SetVisibility(ESlateVisibility::Hidden);
-			}
-		}
-
-		else if (ActorHasTag("Diesel") && !OtherActor->ActorHasTag("Diesel") && !OtherActor->IsA(ACreep::StaticClass()))
-		{
-			if (hbStructures.Contains(OtherActor))
-				hbStructures.Remove(OtherActor);
-
-			if (hbStructures.Num() >= 1)
-			{
-				structureHealthBar->SetOwningStructure(hbStructures[0]);
-			}
-			else if (hbStructures.Num() == 0)
-			{
-				structureHealthBar->SetVisibility(ESlateVisibility::Hidden);
-			}
-		}
-
-	}
-	
-
-
-}
 void AHeroBase::HideStructureHB(AActor* structure)
 {
 	if (!ActorHasTag("AI"))
@@ -1804,5 +1804,24 @@ void AHeroBase::HideStructureHB(AActor* structure)
 			structureHealthBar->SetVisibility(ESlateVisibility::Hidden);
 		}
 	}
+}
+
+AActor* AHeroBase::GetClosestStructure() 
+{
+	AActor* closestStructure = nullptr;
+	if (hbStructures.Num() > 1)
+	{
+		closestStructure = hbStructures[0];
+
+		for (int i = 1; i < hbStructures.Num(); i++)
+		{
+			if (GetDistanceTo(hbStructures[i]) <= GetDistanceTo(closestStructure))
+			{
+				closestStructure = hbStructures[i];
+			}
+		}
+	}
+	return closestStructure;
+
 }
 

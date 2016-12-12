@@ -34,7 +34,7 @@ protected:
 		TSubclassOf<class UFloatingDamageWidget> FloatingDamageWidgetClass;
 
 	UPROPERTY(EditDefaultsOnly)
-		UBoxComponent* col;
+		class USphereComponent* structureRadius;
 
 	UPROPERTY(EditDefaultsOnly, Category = Variables)
 		UStaticMeshComponent* ReactorMesh;

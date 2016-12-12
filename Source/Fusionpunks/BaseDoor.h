@@ -32,6 +32,10 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = Health)
 		float maxHealth =100;
 	
+	UPROPERTY(EditDefaultsOnly)
+		class USphereComponent* structureRadius;
+
+
 	UFUNCTION()
 		void AfterFracture(const FVector& in, const FVector& out);
 

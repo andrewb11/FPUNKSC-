@@ -98,28 +98,35 @@ float ATowerBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dam
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	currHP -= DamageAmount;
 
-	if (!DamageCauser->ActorHasTag("AI") && !DamageCauser->ActorHasTag("Creep") && FloatingDamageWidgetClass)
+	if (DamageCauser && DamageCauser->IsA(AHeroBase::StaticClass() )&& !DamageCauser->ActorHasTag("AI") && FloatingDamageWidgetClass)
 	{
-		UFloatingDamageWidget* floatingDamageWidget = CreateWidget<UFloatingDamageWidget>(GetWorld()->GetFirstPlayerController(), FloatingDamageWidgetClass);
-		floatingDamageWidget->SetAlignmentInViewport(FVector2D::FVector2D(0.5f, 0.5f));
-		floatingDamageWidget->SetIncDamage(DamageAmount);
-		floatingDamageWidget->SetOwningActor(this);
-		floatingDamageWidget->AddToViewport();
+
+		AHeroBase* enemy = Cast<AHeroBase>(DamageCauser);
+		APlayerController *playerController = nullptr;
+		if (enemy)
+			playerController = Cast<APlayerController>(enemy->GetController());
+		if (playerController)
+		{
+			UFloatingDamageWidget* floatingDamageWidget = CreateWidget<UFloatingDamageWidget>(playerController, FloatingDamageWidgetClass);
+			//floatingDamageWidget->SetAlignmentInViewport(FVector2D::FVector2D(0.5f, 0.5f));
+			floatingDamageWidget->SetIncDamage(DamageAmount);
+			floatingDamageWidget->SetOwningActor(this);
+			floatingDamageWidget->AddToPlayerScreen();
+		}
 	}
-
-
-
 
 	UE_LOG(LogTemp, Log, TEXT("Tower took %f damage."), DamageAmount);
 	if (currHP <= 0) 
 	{
-		teamHero->RemoveTeamTower(this);
+		if (teamHero)
+			teamHero->RemoveTeamTower(this);
 		if (ActorHasTag("BaseTower"))
 		{
-			enemyHero->RemoveEnemyBaseTower(this);
+			if(enemyHero)
+				enemyHero->RemoveEnemyBaseTower(this);
 		}
-		
-		enemyHero->HideStructureHB(this);
+		if (enemyHero)
+			enemyHero->HideStructureHB(this);
 		AHeroBase* hero = Cast<AHeroBase>(DamageCauser);
 		if (hero)
 		{
@@ -128,8 +135,11 @@ float ATowerBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dam
 		}
 
 		
-
-		CleanUp();
+		if (towerDMG)
+		{
+			towerDMG->StopTimer();
+			towerDMG->Destroy();
+		}
 		Destroy();
 	}
 	return DamageAmount;

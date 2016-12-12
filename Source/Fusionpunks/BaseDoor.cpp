@@ -18,6 +18,10 @@ ABaseDoor::ABaseDoor()
 
 	destructMesh->OnComponentFracture.AddDynamic(this, &ABaseDoor::AfterFracture);
 
+	structureRadius = CreateDefaultSubobject<USphereComponent>(TEXT("StructureRadius"));
+	structureRadius->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	structureRadius->SetSphereRadius(300);
+
 
 }
 
@@ -33,13 +37,21 @@ float ABaseDoor::TakeDamage(float DamageAmount, struct FDamageEvent const & Dama
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	currentHealth -= DamageAmount;
 
-	if (!DamageCauser->ActorHasTag("AI") && !DamageCauser->ActorHasTag("Creep") && FloatingDamageWidgetClass)
+	if (DamageCauser && DamageCauser->IsA(AHeroBase::StaticClass()) && !DamageCauser->ActorHasTag("AI") && FloatingDamageWidgetClass)
 	{
-		UFloatingDamageWidget* floatingDamageWidget = CreateWidget<UFloatingDamageWidget>(GetWorld()->GetFirstPlayerController(), FloatingDamageWidgetClass);
-		floatingDamageWidget->SetAlignmentInViewport(FVector2D::FVector2D(0.5f, 0.5f));
-		floatingDamageWidget->SetIncDamage(DamageAmount);
-		floatingDamageWidget->SetOwningActor(this);
-		floatingDamageWidget->AddToViewport();
+
+		AHeroBase* enemy = Cast<AHeroBase>(DamageCauser);
+		APlayerController *playerController = nullptr;
+		if (enemy)
+			playerController = Cast<APlayerController>(enemy->GetController());
+		if (playerController)
+		{
+			UFloatingDamageWidget* floatingDamageWidget = CreateWidget<UFloatingDamageWidget>(playerController, FloatingDamageWidgetClass);
+			//floatingDamageWidget->SetAlignmentInViewport(FVector2D::FVector2D(0.5f, 0.5f));
+			floatingDamageWidget->SetIncDamage(DamageAmount);
+			floatingDamageWidget->SetOwningActor(this);
+			floatingDamageWidget->AddToPlayerScreen();
+		}
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Base took %f damage."), DamageAmount);
@@ -50,6 +62,7 @@ float ABaseDoor::TakeDamage(float DamageAmount, struct FDamageEvent const & Dama
 		mesh->SetVisibility(false);
 		mesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		destructMesh->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		structureRadius->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		destructMesh->SetSimulatePhysics(true);
 		//SetActorEnableCollision(false);
 		enemyHero->HideStructureHB(this);

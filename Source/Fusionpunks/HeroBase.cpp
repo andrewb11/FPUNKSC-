@@ -10,6 +10,7 @@
 #include "BaseDoor.h"
 #include "BaseReactor.h"
 #include "TowerBase.h"
+#include "TowerHealthBarWidget.h"
 #include "FloatingDamageWidget.h"
 #include "HeroAIController.h"
 #include "RespawnOverTime.h"
@@ -22,6 +23,7 @@
 #include "Classes/Kismet/KismetSystemLibrary.h"
 #include "BulletBase.h"
 #include "ObjectiveListWidget.h"
+#include "PauseMenuWidget.h"
 #include "HeroBase.h"
 
 
@@ -75,6 +77,7 @@ AHeroBase::AHeroBase()
 	sphereTrigger = CreateDefaultSubobject<USphereComponent>(TEXT("TriggerCollider"));
 	sphereTrigger->SetSphereRadius(agroRadius, true);
 	sphereTrigger->bGenerateOverlapEvents = true;
+	sphereTrigger->OnComponentBeginOverlap.AddDynamic(this, &AHeroBase::TriggerEnter);
 	sphereTrigger->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
 	//Create a scene component to attach creeps to for grenade throw, offset it from the "GrenadeThrow" socket on the character mesh
@@ -134,7 +137,7 @@ void AHeroBase::BeginPlay()
 	currentHealth = maxHealth;
 	DefaultTurnRate = BaseTurnRate;
 
-	AFusionpunksGameState* gameState = Cast<AFusionpunksGameState>(GetWorld()->GetGameState());
+	gameState = Cast<AFusionpunksGameState>(GetWorld()->GetGameState());
 	if (gameState)
 	{
 		gameState->Players.Add(this);
@@ -187,6 +190,7 @@ void AHeroBase::BeginPlay()
 		{
 			enemyBaseDoor = baseDoors[0];
 			EBD = Cast<ABaseDoor>(enemyBaseDoor);
+			EBD->SetEnemyHero(this);
 		}
 
 		TArray<AActor*> baseReactors;
@@ -197,6 +201,7 @@ void AHeroBase::BeginPlay()
 			UE_LOG(LogTemp, Warning, TEXT("Found Enemy Base Reactor!!!!"));
 			enemyBaseReactor = baseReactors[0];
 			EBR = Cast<ABaseReactor>(enemyBaseReactor);
+			EBR->SetEnemyHero(this);
 		}
 		if (ActorHasTag("AI"))
 		{
@@ -225,7 +230,7 @@ void AHeroBase::BeginPlay()
 			enemyHero = Cast<AHeroBase>(enemyHeros[0]);
 		}
 		
-		APlayerController* controller = Cast<APlayerController>(GetController());
+		controller = Cast<APlayerController>(GetController());
 		if (controller)
 		{
 			playerHealthBarWidget = CreateWidget<UPlayerHealthBarWidget>(controller, playerHealthBarWidgetClass);
@@ -238,6 +243,11 @@ void AHeroBase::BeginPlay()
 			objectiveListWidget = CreateWidget<UObjectiveListWidget>(controller, objectiveListWidgetClass);
 			objectiveListWidget->AddToPlayerScreen();
 			objectiveListWidget->SetOwner(this);
+
+			
+			structureHealthBar = CreateWidget<UTowerHealthBarWidget>(controller, healthBarClass);
+			structureHealthBar->AddToPlayerScreen();
+			structureHealthBar->SetVisibility(ESlateVisibility::Hidden);
 
 			gameTimerWidget = CreateWidget<UGameTimerWidget>(controller, gameTimerWidgetClass);
 			gameTimerWidget->AddToPlayerScreen(1);
@@ -297,7 +307,7 @@ void AHeroBase::SetupPlayerInputComponent(class UInputComponent* InputComponent)
 	InputComponent->BindAction("Ability3", IE_Pressed, this, &AHeroBase::UseAbility2);
 	InputComponent->BindAction("Ability4", IE_Pressed, this, &AHeroBase::UseAbility3);
 	InputComponent->BindAction("Ability5", IE_Pressed, this, &AHeroBase::UseAbility4);
-
+	InputComponent->BindAction("PauseMenu", IE_Pressed, this, &AHeroBase::PauseMenuPressed);
 	InputComponent->BindAction("MeleeAttack", IE_Pressed, this, &AHeroBase::MeleeAttack);
 }
 void AHeroBase::TurnAtRate(float Rate)
@@ -640,7 +650,7 @@ bool AHeroBase::CheckForNearbyInteractions()
 
 		for (int32 i = 0; i < Results2.Num(); i++)
 		{
-			if (Results2[i].GetActor()->IsA(ATowerBase::StaticClass()))
+			if (Results2[i].GetActor()->IsA(ATowerBase::StaticClass()) && heroAI->GoingForWin())
 			{
 				if ((ActorHasTag("Cyber") && Results2[i].Actor->ActorHasTag("Diesel"))
 					|| (ActorHasTag("Diesel") && Results2[i].Actor->ActorHasTag("Cyber")))
@@ -973,6 +983,7 @@ float AHeroBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dama
 			else
 			{
 				StopAttacking();
+				
 				bIsRespawning = true;
 				AHeroBase* hero = Cast<AHeroBase>(DamageCauser);
 				if (hero)
@@ -1014,6 +1025,8 @@ float AHeroBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dama
 				}
 				else
 				{
+
+					structureHealthBar->SetVisibility(ESlateVisibility::Hidden);
 					UGameplayStatics::PlaySound2D(this, Announcer_PlayerHeroDestroyed);
 				}
 
@@ -1555,12 +1568,15 @@ bool AHeroBase::SafeToJump()
 {
 	FVector jumpLocation;
 	//if (ActorHasTag("Diesel"))
-	jumpLocation = (GetActorLocation() + (GetActorRotation().Vector() * 1000.0f));
+
 	TArray<AActor*> objectsToIgnore;
 	objectsToIgnore.Add(this);
 	TArray<FHitResult>  Results;
-	UKismetSystemLibrary::LineTraceMulti_NEW(GetWorld(), GetActorLocation(), jumpLocation, ETraceTypeQuery::TraceTypeQuery1, false,
-		objectsToIgnore, EDrawDebugTrace::ForDuration, Results, true, FLinearColor::Green, FLinearColor::Red, 1);
+	FVector startTraceLoc = GetActorLocation();
+	startTraceLoc.Z += 100.0f;
+	jumpLocation = (startTraceLoc + (GetActorRotation().Vector() * 1000.0f));
+	UKismetSystemLibrary::LineTraceMulti_NEW(GetWorld(), startTraceLoc, jumpLocation, ETraceTypeQuery::TraceTypeQuery1, false,
+		objectsToIgnore, EDrawDebugTrace::None, Results, true, FLinearColor::Green, FLinearColor::Red, 1);
 	bool abletojump = true;
 	if (Results.Num() > 0)
 	{
@@ -1641,7 +1657,152 @@ void AHeroBase::RemoveTeamTower(ATowerBase* tower)
 		teamTowers.Remove(tower);
 }
 
+void AHeroBase::ShowPauseMenu()
+{
+	if (!ActorHasTag("AI"))
+	{
+		if (!pauseMenuWidget)
+		{
+			pauseMenuWidget = CreateWidget<UPauseMenuWidget>(controller, pauseMenuWidgetClass);
+			
+		}
+		pauseMenuWidget->AddToPlayerScreen();
+		gameTimerWidget->SetPaused(true);
+	}
+}
+
+void AHeroBase::HidePauseMenu()
+{
+	if (!ActorHasTag("AI"))
+	{
+		if (pauseMenuWidget)
+		{
+			pauseMenuWidget->RemoveFromViewport();
+			controller->bShowMouseCursor = false;
+			
+		}
+
+		if(optionsMenuWidget)
+			optionsMenuWidget->SetVisibility(ESlateVisibility::Hidden);
+
+		gameTimerWidget->SetPaused(false);
+
+		
+		
+	}
+
+	
+}
+void AHeroBase::ShowOptionsMenu()
+{
+
+	if (!ActorHasTag("AI"))
+	{
+		if (!optionsMenuWidget)
+		{
+			optionsMenuWidget = CreateWidget<UUserWidget>(controller, optionsMenuWidgetClass);
+			optionsMenuWidget->AddToPlayerScreen(10);
+
+		}
+		optionsMenuWidget->SetVisibility(ESlateVisibility::Visible);
+
+	}
+}
 
 
+void AHeroBase::PauseMenuPressed()
+{
+	gameState->PauseGame();
+	
+}
 
+void AHeroBase::TriggerEnter(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
+{
+	if (!ActorHasTag("AI"))
+	{
+
+		UE_LOG(LogTemp, Display, TEXT("FOUND STRUCTURE FOR HB"));
+		if (ActorHasTag("Cyber") && !OtherActor->ActorHasTag("Cyber") && !OtherActor->IsA(ACreep::StaticClass()))
+		{
+			if (!hbStructures.Contains(OtherActor))
+				hbStructures.Add(OtherActor);
+			if (hbStructures.Num() == 1)
+			{
+				structureHealthBar->SetOwningStructure(OtherActor);
+				structureHealthBar->SetVisibility(ESlateVisibility::Visible);
+			}
+		}
+
+		else if (ActorHasTag("Diesel") && !OtherActor->ActorHasTag("Diesel") && !OtherActor->IsA(ACreep::StaticClass()))
+		{
+			if (!hbStructures.Contains(OtherActor))
+				hbStructures.Add(OtherActor);
+			if (hbStructures.Num() == 1)
+			{
+				structureHealthBar->SetOwningStructure(OtherActor);
+				structureHealthBar->SetVisibility(ESlateVisibility::Visible);
+			}
+		}
+	}
+	
+}
+
+void AHeroBase::TriggerExit(UPrimitiveComponent* ThisComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (!ActorHasTag("AI"))
+	{
+		
+		if (ActorHasTag("Cyber") && !OtherActor->ActorHasTag("Cyber") && !OtherActor->IsA(ACreep::StaticClass()))
+		{
+			if(hbStructures.Contains(OtherActor)) 
+				hbStructures.Remove(OtherActor);
+
+			
+			if (hbStructures.Num() >= 1)
+			{
+				structureHealthBar->SetOwningStructure(hbStructures[0]);
+			}
+			else if(hbStructures.Num() == 0)
+			{
+				structureHealthBar->SetVisibility(ESlateVisibility::Hidden);
+			}
+		}
+
+		else if (ActorHasTag("Diesel") && !OtherActor->ActorHasTag("Diesel") && !OtherActor->IsA(ACreep::StaticClass()))
+		{
+			if (hbStructures.Contains(OtherActor))
+				hbStructures.Remove(OtherActor);
+
+			if (hbStructures.Num() >= 1)
+			{
+				structureHealthBar->SetOwningStructure(hbStructures[0]);
+			}
+			else if (hbStructures.Num() == 0)
+			{
+				structureHealthBar->SetVisibility(ESlateVisibility::Hidden);
+			}
+		}
+
+	}
+	
+
+
+}
+void AHeroBase::HideStructureHB(AActor* structure)
+{
+	if (!ActorHasTag("AI"))
+	{
+		if (hbStructures.Contains(structure))
+			hbStructures.Remove(structure);
+
+		if (hbStructures.Num() >= 1)
+		{
+			structureHealthBar->SetOwningStructure(hbStructures[0]);
+		}
+		else if (hbStructures.Num() == 0)
+		{
+			structureHealthBar->SetVisibility(ESlateVisibility::Hidden);
+		}
+	}
+}
 

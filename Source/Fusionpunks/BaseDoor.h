@@ -18,6 +18,10 @@ public:
 	virtual void BeginPlay() override;
 	bool isDestroyed = false;
 	FORCEINLINE float GetHpPercent() const { return currentHealth / maxHealth; }
+	FORCEINLINE void  SetEnemyHero(class AHeroBase* hero) { enemyHero = hero; }
+	UPROPERTY(EditDefaultsOnly, Category = Widgets)
+		TSubclassOf<class UFloatingDamageWidget> FloatingDamageWidgetClass;
+
 
 private:
 
@@ -33,4 +37,12 @@ private:
 
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
 	float currentHealth;
+
+	class AHeroBase* enemyHero;
+
+
+	
+
+
+
 };

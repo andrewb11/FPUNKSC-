@@ -19,7 +19,8 @@ protected:
 	class AHeroAIController* heroAI;
 	AActor* healingWell;
 	class AAbilityBase* sacrificeCreepAbility, *dashAbility;
-
+	TArray<ACreepCamp*> ownedCreepCamps;
+	AActor* destination;
 	UPROPERTY(EditAnywhere)
 		float healthPercentageAbort = 0.21f;
 	UPROPERTY(EditAnywhere)

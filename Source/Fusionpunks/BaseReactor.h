@@ -22,6 +22,7 @@ public:
 
 	bool isDestroyed = false;
 	FORCEINLINE float GetHpPercent() const { return currentHealth / maxHealth; }
+	FORCEINLINE void  SetEnemyHero(class AHeroBase* hero) { enemyHero = hero; }
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = Health)
@@ -29,9 +30,16 @@ protected:
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
 	float currentHealth;
 
+	UPROPERTY(EditDefaultsOnly, Category = Widgets)
+		TSubclassOf<class UFloatingDamageWidget> FloatingDamageWidgetClass;
+
+	UPROPERTY(EditDefaultsOnly)
+		UBoxComponent* col;
+
 	UPROPERTY(EditDefaultsOnly, Category = Variables)
 		UStaticMeshComponent* ReactorMesh;
 
+	class AHeroBase* enemyHero;
 	
 	
 };

@@ -202,3 +202,8 @@ void AHeroAIController::LinkEnemyBaseProps(AActor* baseDoor, AActor* baseReactor
 		BlackboardComponent->SetValueAsObject("EnemyBaseReactor", baseReactor);
 	}
 }
+
+bool AHeroAIController::GoingForWin()
+{
+	return  BlackboardComponent->GetValueAsBool("GoingForWin");
+}

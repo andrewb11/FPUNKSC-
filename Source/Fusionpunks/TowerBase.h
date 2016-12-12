@@ -39,7 +39,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = Damage)
 		float damage;
 
-
+	
 	bool CheckForEnemyHero();
 
 protected:
@@ -104,6 +104,10 @@ protected:
 	bool bIsDealingDMG = false;
 
 	
+
+
+
+
 
 
 

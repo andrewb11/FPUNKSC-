@@ -53,7 +53,7 @@ class FUSIONPUNKS_API UBTTask_DecideHowToApproachHero : public UBTTaskNode
 		int32  levelDifferenceAllowed = 5;
 	UPROPERTY(EditAnywhere)
 		bool bLastStandMode = false;
-	float chaseTimer = 0;
+	float chaseTimer = 0, throwDelay = 0;
 	
 
 	

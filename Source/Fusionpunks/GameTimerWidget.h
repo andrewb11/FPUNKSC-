@@ -21,12 +21,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = GameVariables)
 		FText GetGameTimeAsText() const;
 
-	
+	void SetPaused(bool status);
 private:
 	UPROPERTY(EditAnywhere, Category = GameVariables)
 	float GameLength;
 
 	float gameTimer;
-	
+
+	bool bIsPaused = false;
+
 	
 };

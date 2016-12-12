@@ -100,3 +100,44 @@ void AFusionpunksGameState::CyberWins()
 		}
 	}
 }
+
+void AFusionpunksGameState::PauseGame()
+{
+
+	
+	for (int i = 0; i < Players.Num(); i++)
+	{
+		
+		if(!Players[i]->ActorHasTag("AI"))
+			Players[i]->ShowPauseMenu();
+
+	}
+
+	UGameplayStatics::SetGamePaused(GetWorld(), true);
+	
+}
+void AFusionpunksGameState::UnpauseGame()
+{
+
+
+	for (int i = 0; i < Players.Num(); i++)
+	{
+
+		if (!Players[i]->ActorHasTag("AI"))
+			Players[i]->HidePauseMenu();
+	}
+
+	UGameplayStatics::SetGamePaused(GetWorld(), false);
+	
+}
+
+
+void AFusionpunksGameState::ShowOptionsMenu()
+{
+	for (int i = 0; i < Players.Num(); i++)
+	{
+
+		if (!Players[i]->ActorHasTag("AI"))
+			Players[i]->ShowOptionsMenu();
+	}
+}

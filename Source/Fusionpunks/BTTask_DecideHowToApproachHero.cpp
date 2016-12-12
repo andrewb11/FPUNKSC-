@@ -178,7 +178,12 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 
 							if (hero->GetArmySize() >= 1 && ability2 != nullptr && ability2->CanUse())
 							{
-								ability2->Use();
+								throwDelay += DeltaSeconds;
+								if (throwDelay >= 0.75f)
+								{
+									ability2->Use();
+									throwDelay = 0;
+								}
 
 							}
 							else if (ability0 != nullptr && ability0->CanUse() && hero->GetDistanceTo(attackTarget) >= 575.0f && hero->SafeToJump())
@@ -253,7 +258,7 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 							 if (ability0 != nullptr && ability0->CanUse() && hero->GetDistanceTo(enemyCreep) >= 575.0f  && hero->SafeToJump())
 							{
 								 OwnerComp.GetAIOwner()->StopMovement();
-								ability0->Use();
+								 ability0->Use();
 							}
 
 						}
@@ -346,7 +351,12 @@ void UBTTask_DecideHowToApproachHero::TickTask(UBehaviorTreeComponent& OwnerComp
 
 						if (hero->GetArmySize() >= 1 && ability2 != nullptr && ability2->CanUse())
 						{
-							ability2->Use();
+							throwDelay += DeltaSeconds;
+							if (throwDelay >= 0.75f)
+							{
+								ability2->Use();
+								throwDelay = 0;
+							}
 
 						}
 						else if (ability0 != nullptr && ability0->CanUse() && hero->GetDistanceTo(attackTarget) >= 575.0f  && hero->SafeToJump())

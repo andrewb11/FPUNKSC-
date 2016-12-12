@@ -2,6 +2,8 @@
 
 #include "Fusionpunks.h"
 #include "FusionpunksGameState.h"
+#include "FloatingDamageWidget.h"
+#include "HeroBase.h"
 #include "BaseReactor.h"
 
 
@@ -10,9 +12,10 @@ ABaseReactor::ABaseReactor()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
-
+	//col = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCol"));
 	ReactorMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("DoorDestructibleMesh"));
 	RootComponent = ReactorMesh;
+	//ReactorMesh->AttachToComponent(col, FAttachmentTransformRules::KeepRelativeTransform);
 }
 
 // Called when the game starts or when spawned
@@ -34,11 +37,23 @@ float ABaseReactor::TakeDamage(float DamageAmount, struct FDamageEvent const & D
 	Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 	currentHealth -= DamageAmount;
 	UE_LOG(LogTemp, Warning, TEXT("Base took %f damage."), DamageAmount);
+
+
+	if (!DamageCauser->ActorHasTag("AI") && !DamageCauser->ActorHasTag("Creep") && FloatingDamageWidgetClass)
+	{
+		UFloatingDamageWidget* floatingDamageWidget = CreateWidget<UFloatingDamageWidget>(GetWorld()->GetFirstPlayerController(), FloatingDamageWidgetClass);
+		floatingDamageWidget->SetAlignmentInViewport(FVector2D::FVector2D(0.5f, 0.5f));
+		floatingDamageWidget->SetIncDamage(DamageAmount);
+		floatingDamageWidget->SetOwningActor(this);
+		floatingDamageWidget->AddToViewport();
+	}
+
+
 	if (currentHealth <= 0)
 	{
 
 		isDestroyed = true;
-
+		enemyHero->HideStructureHB(this);
 		if (Tags.Contains("CyberBase"))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Diesel Wins!"));

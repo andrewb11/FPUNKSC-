@@ -23,6 +23,24 @@ EBTNodeResult::Type UBTTask_Escape::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 			dashAbility = hero->GetAbility(2);
 		else if (hero->ActorHasTag("Diesel"))
 			dashAbility = hero->GetAbility(0);
+	
+		ownedCreepCamps = heroAI->GetSortedOwnedCampList();
+		if (ownedCreepCamps.Num() > 0)
+		{
+			if (hero->GetDistanceTo(ownedCreepCamps[0]) < hero->GetDistanceTo(healingWell) && hero->GetArmySize() == 0)
+			{
+				destination = ownedCreepCamps[0];
+			}
+
+			else
+			{
+				destination = healingWell;
+			}
+		}
+		else
+		{
+			destination = healingWell;
+		}
 
 
 		return EBTNodeResult::InProgress;
@@ -44,7 +62,7 @@ void UBTTask_Escape::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 			sacrificeCreepAbility->Use();
 		}
 
-		else  if (movementAbilityDelay >= 0.75f  && dashAbility!=nullptr && dashAbility->CanUse()  && hero->SafeToJump())
+		else  if (movementAbilityDelay >= 1.25f  && dashAbility!=nullptr && dashAbility->CanUse()  && hero->SafeToJump())
 		{
 			//OwnerComp.GetAIOwner()->StopMovement();
 			dashAbility->Use();
@@ -75,7 +93,7 @@ void UBTTask_Escape::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 
 		if (!hero->InsideHealingWell())
 		{
-			OwnerComp.GetAIOwner()->MoveToActor(healingWell, 50, true, true, false);
+			OwnerComp.GetAIOwner()->MoveToActor(destination, 50, true, true, false);
 		}
 		else
 		{
@@ -87,6 +105,7 @@ void UBTTask_Escape::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 	else
 	{
 		heroAI->ResetAITreeTaskStatus();
+		//heroAI->ResetAllCampsRecruitStatus();
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 	}
 }

@@ -128,7 +128,7 @@ public:
 	virtual void BeginPlay() override;
 	TArray<ACreepCamp*> GetCreepCampList();
 	TArray<ACreepCamp*> GetSortedOwnedCampList();
-
+	bool GoingForWin();
 
 	void LinkEnemyBaseProps(AActor* baseDoor, AActor* baseReactor);
 	//virtual void UpdateControlRotation(float DeltaTime, bool bUpdatePawn) override;

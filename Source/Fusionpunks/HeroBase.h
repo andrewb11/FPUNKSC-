@@ -361,6 +361,12 @@ public:
 	FORCEINLINE UDecalComponent* GetCompassDecal() const { return compassDecalComponent; }
 	void ShowCompassDecal();
 	void HideCompassDecal();
+
+	void PauseMenuPressed();
+	void ShowPauseMenu();
+	void HidePauseMenu();
+	void ShowOptionsMenu();
+	void HideStructureHB(AActor* structure);
 protected:
 	UPROPERTY(EditDefaultsOnly)
 		TSubclassOf<class UGameTimerWidget> gameTimerWidgetClass;
@@ -383,7 +389,25 @@ protected:
 
 	class UObjectiveListWidget* objectiveListWidget;
 
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<class UPauseMenuWidget> pauseMenuWidgetClass;
 
+	class UPauseMenuWidget* pauseMenuWidget;
+
+
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<class UUserWidget> optionsMenuWidgetClass;
+
+
+	UPROPERTY(EditDefaultsOnly)
+		TSubclassOf<class UTowerHealthBarWidget> healthBarClass;
+
+	class UTowerHealthBarWidget* structureHealthBar;
+
+	class UUserWidget* optionsMenuWidget;
+
+	class AFusionpunksGameState* gameState;
+	class APlayerController* controller;
 
 //Ability Array
 protected:
@@ -451,6 +475,15 @@ protected:
 	void RestoreTurnRate();
 	void ResetMeleeAttackCombo();
 
+
+
+
+	UFUNCTION()
+		virtual void TriggerEnter(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult);
+	UFUNCTION()
+		virtual void TriggerExit(UPrimitiveComponent* ThisComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+
 //Melee Attacking 
 public:
 	void RestoreWalkSpeed();
@@ -477,6 +510,8 @@ public:
 protected:
 	class ABaseDoor* EBD;
 	class ABaseReactor* EBR;
+	TArray<AActor*> hbStructures;
+
 protected:
 	
 	float launchForce;

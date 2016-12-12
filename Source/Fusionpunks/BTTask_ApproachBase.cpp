@@ -37,7 +37,7 @@ void UBTTask_ApproachBase::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* No
 {
 	Super::TickTask(OwnerComp, NodeMemory, DeltaSeconds);
 
-	if ((hero->GetDistanceTo(enemyBase) > 2500 && hero->CheckForNearbyInteractions()) || (hero->CheckForNearbyEnemyHero() || hero->CheckForNearbyEnemyTowers()))
+	if ((hero->GetDistanceTo(enemyBase) > 3500 && hero->CheckForNearbyInteractions()) || (hero->CheckForNearbyEnemyHero() || hero->CheckForNearbyEnemyTowers()))
 	{
 		OwnerComp.GetBlackboardComponent()->SetValueAsBool("FoundNearbyEnemyCamp", hero->GetNearbyEnemyCamp() != nullptr);
 		if (hero->GetNearbyEnemyCamp() != nullptr)

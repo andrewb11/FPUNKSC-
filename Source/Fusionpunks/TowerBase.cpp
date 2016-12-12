@@ -2,6 +2,7 @@
 
 #include "Fusionpunks.h"
 #include "FloatingDamageWidget.h"
+#include "TowerHealthBarWidget.h"
 #include "HeroBase.h"
 #include "TowerBase.h"
 
@@ -61,6 +62,7 @@ void ATowerBase::BeginPlay()
 		enemyHero = Cast<AHeroBase>(herosInGame[0]);
 	}
 
+	
 	currHP = maxHP;
 
 }
@@ -71,17 +73,18 @@ void ATowerBase::TriggerExit(UPrimitiveComponent* OverlappedComponent, AActor* O
 	//Super::TriggerExit(OverlappedComponent, OtherActor, OtherComp, OtherBodyIndex);
 	if (enemyUnits.Contains(OtherActor))
 		enemyUnits.Remove(OtherActor);
-	
 }
 
 void ATowerBase::TriggerEnter(class UPrimitiveComponent* ThisComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult &SweepResult)
 {
 	//Super::TriggerEnter(ThisComp, OtherActor, OtherComp, OtherBodyIndex, bFromSweep, SweepResult);
 	if (OtherActor->IsA(ACharacter::StaticClass()))
-	{
-		
+	{		
 		if (ActorHasTag("Diesel") && !OtherActor->ActorHasTag("Diesel"))
+		{
+			
 			enemyUnits.Add(OtherActor);
+		}
 		else if (ActorHasTag("Cyber") && !OtherActor->ActorHasTag("Cyber"))
 		{
 			enemyUnits.Add(OtherActor);
@@ -104,6 +107,9 @@ float ATowerBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dam
 		floatingDamageWidget->AddToViewport();
 	}
 
+
+
+
 	UE_LOG(LogTemp, Log, TEXT("Tower took %f damage."), DamageAmount);
 	if (currHP <= 0) 
 	{
@@ -112,13 +118,16 @@ float ATowerBase::TakeDamage(float DamageAmount, struct FDamageEvent const & Dam
 		{
 			enemyHero->RemoveEnemyBaseTower(this);
 		}
-
+		
+		enemyHero->HideStructureHB(this);
 		AHeroBase* hero = Cast<AHeroBase>(DamageCauser);
 		if (hero)
 		{
 			UE_LOG(LogTemp, Log, TEXT("%i experence rewarded"), XPKillReward);
 			hero->AddToExperience(XPKillReward);
 		}
+
+		
 
 		CleanUp();
 		Destroy();

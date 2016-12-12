@@ -33,6 +33,9 @@ public:
 	void DieselWins();
 	void CyberWins();
 
+	void PauseGame();
+	void UnpauseGame();
+	void ShowOptionsMenu();
 private:
 	int CyberLevel;
 	int DieselLevel;
@@ -42,6 +45,7 @@ private:
 
 	UPROPERTY(EditDefaultsOnly, Category = Widgets)
 		TSubclassOf<class UUserWidget> DieselWinsWidgetClass;
+
 
 
 

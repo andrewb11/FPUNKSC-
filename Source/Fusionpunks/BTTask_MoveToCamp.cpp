@@ -100,7 +100,7 @@ void UBTTask_MoveToCamp::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* Node
 
 	
 
-	else if ( movementAbilityDelay >= 0.75f && movementAbility != nullptr &&  movementAbility->CanUse() && hero->SafeToJump() )
+	else if ( movementAbilityDelay >= 1.25f && movementAbility != nullptr &&  movementAbility->CanUse() && hero->SafeToJump() )
 	{
 		
 		/*FRotator lookAtTargetRotation;

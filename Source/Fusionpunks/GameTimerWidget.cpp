@@ -16,7 +16,8 @@ void UGameTimerWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 
-	gameTimer -= InDeltaTime;
+	if (!bIsPaused)
+		gameTimer -= InDeltaTime;
 
 	
 	if (gameTimer <= 0)
@@ -29,6 +30,12 @@ FText UGameTimerWidget::GetGameTimeAsText() const
 {
 	return FText::Format(LOCTEXT("GameTimeFormat", "{0} : {1}"), FText::AsNumber((int)(gameTimer / 60)), FText::AsNumber(((int)gameTimer % 60)));
 }
+
+void UGameTimerWidget::SetPaused(bool status)
+{
+	bIsPaused = status;
+}
+
 
 #undef LOCTEXT_NAMESPACE
 
